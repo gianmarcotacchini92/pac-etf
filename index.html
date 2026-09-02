@@ -1,0 +1,2852 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gestione PAC ETF</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0f172a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="PAC ETF" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" type="image/png" href="icon-192.png" />
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #273549;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --good: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(160deg, #0f172a, #111827);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  h1 {
+    text-align: center;
+    font-weight: 700;
+    margin: 0 0 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2 .ico { font-size: 18px; }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  button {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    color: #0b1220;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform .05s ease, opacity .15s ease;
+  }
+  button:hover { opacity: .92; }
+  button:active { transform: translateY(1px); }
+  button.ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  button.ghost:hover { color: var(--text); }
+  .stat {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .stat .v { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .pos { color: var(--good); }
+  .neg { color: var(--bad); }
+  .neu { color: var(--text); }
+  .warn { color: var(--warn); }
+
+  /* suggestion box */
+  #suggestion {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    background: linear-gradient(160deg, #16233b, #182338);
+  }
+  .sug-head { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .sug-main {
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .sug-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .chip {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .chip .k { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+  .chip .v { font-size: 18px; font-weight: 700; margin-top: 2px; }
+  .note {
+    margin-top: 12px;
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(56,189,248,.08);
+    border: 1px solid rgba(56,189,248,.25);
+  }
+  .note.bad { background: rgba(248,113,113,.10); border-color: rgba(248,113,113,.35); color: #fecaca; }
+  .note.warn { background: rgba(251,191,36,.10); border-color: rgba(251,191,36,.35); color: #fde68a; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 9px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+  tbody tr:hover { background: rgba(255,255,255,.03); }
+  tr.totrow { background: rgba(255,255,255,.04); }
+  tr.totrow:hover { background: rgba(255,255,255,.04); }
+  tr.totrow td { border-top: 2px solid var(--border); border-bottom: none; }
+  tr.totrow2 td { border-top: 1px dashed var(--border); }
+  .del {
+    background: transparent; color: var(--bad); border: none; cursor: pointer;
+    font-size: 16px; padding: 2px 6px;
+  }
+  .edit {
+    background: transparent; color: var(--muted); border: none; cursor: pointer;
+    font-size: 15px; padding: 2px 6px;
+  }
+  .edit:hover { color: var(--accent); }
+  .mv {
+    background: transparent; color: var(--muted); border: none; cursor: pointer;
+    font-size: 11px; padding: 2px 4px; line-height: 1;
+  }
+  .mv:hover:not(:disabled) { color: var(--accent); }
+  .mv:disabled { opacity: .25; cursor: default; }
+  .grip {
+    display: inline-block; margin-right: 6px; color: var(--muted);
+    cursor: grab; font-size: 13px; letter-spacing: -1px; user-select: none;
+  }
+  tr[draggable="true"]:active .grip { cursor: grabbing; }
+  tr.dragging { opacity: .4; }
+  tr.drop-above td { box-shadow: inset 0 2px 0 0 var(--accent); }
+  tr.drop-below td { box-shadow: inset 0 -2px 0 0 var(--accent); }
+  .rowbtns { display: inline-flex; gap: 2px; }
+  .table-wrap { overflow-x: auto; }
+
+  /* Scrollbar personalizzata */
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(var(--card2), var(--border));
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(var(--accent2), var(--accent));
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  .table-wrap:hover { scrollbar-color: var(--accent) transparent; }
+  .empty { color: var(--muted); text-align: center; padding: 24px; font-size: 14px; }
+  .muted { color: var(--muted); }
+  td input { width: 100%; margin: 0; padding: 6px 8px; font-size: 13px; min-width: 84px; }
+  code { background: var(--card2); padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+
+  /* crash levels */
+  .lvl {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card2);
+    margin-bottom: 10px;
+  }
+  .lvl.active { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad) inset; }
+  .lvl .tag { font-weight: 800; font-size: 18px; }
+  .lvl .lvl-mid { font-size: 13px; color: var(--muted); }
+  .lvl .lvl-mid b { color: var(--text); }
+  .lvl .lvl-act { text-align: right; font-size: 13px; }
+  .lvl .lvl-act b { font-size: 16px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; }
+  .badge.hit { background: var(--bad); color:#2a0d0d; }
+  .badge.safe { background: rgba(52,211,153,.15); color: var(--good); }
+
+  .toolbar { display:flex; gap:10px; flex-wrap: wrap; justify-content:flex-end; margin-top: 8px; }
+  .hint { font-size: 12px; color: var(--muted); margin: -6px 0 12px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Gestione PAC ETF</h1>
+  <div class="subtitle">Piano di accumulo con quota d'acquisto suggerita in base alla performance mensile <span style="opacity:.6;">· build 2026-07-08a</span></div>
+
+  <div class="grid">
+    <!-- Stato iniziale + config -->
+    <div class="card">
+      <h2><span class="ico">⚙️</span> Stato iniziale &amp; regole</h2>
+      <div class="row2">
+        <div>
+          <label>Valore portafoglio iniziale (€)</label>
+          <input type="number" id="initValue" step="0.01" value="0" />
+        </div>
+        <div>
+          <label>Liquidità iniziale (€)</label>
+          <input type="number" id="initLiq" step="0.01" value="0" />
+        </div>
+      </div>
+      <div class="row3">
+        <div>
+          <label>Budget mensile (€)</label>
+          <input type="number" id="cfgBudget" step="1" value="150" />
+        </div>
+        <div>
+          <label>Crescita target (€)</label>
+          <input type="number" id="cfgTarget" step="1" value="150" />
+        </div>
+        <div>
+          <label>Quota minima (€)</label>
+          <input type="number" id="cfgMin" step="1" value="100" />
+        </div>
+      </div>
+      <div class="hint">La quota minima è quanto investi sempre quando la performance è già forte (il resto del budget va in liquidità).</div>
+    </div>
+
+    <!-- Nuovo mese -->
+    <div class="card">
+      <h2><span class="ico">➕</span> Nuovo mese</h2>
+      <label>Etichetta mese (es. Gen 2026)</label>
+      <input type="text" id="mLabel" placeholder="Mese/Anno" />
+      <label>Valore attuale del portafoglio, prima del versamento (€)</label>
+      <input type="number" id="mValue" step="0.01" placeholder="es. 5200" />
+      <div class="hint">La performance viene calcolata rispetto al valore di fine mese precedente.</div>
+      <button id="btnAdd" style="width:100%;">Calcola e registra mese</button>
+    </div>
+  </div>
+
+  <!-- Allocazione: torta + obiettivo -->
+  <div class="card" style="margin-bottom:16px;">
+    <h2><span class="ico">🥧</span> Allocazione &amp; obiettivo</h2>
+    <div style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <canvas id="pieCanvas" width="280" height="280" style="width:280px;height:280px;max-width:100%;"></canvas>
+        <div class="hint" id="pieHint" style="margin:0;text-align:center;max-width:280px;">Aggiungi ETF e premi «Aggiorna prezzi» per vedere l'allocazione.</div>
+      </div>
+      <div style="flex:1;min-width:280px;">
+        <div id="pieLegend" style="margin-bottom:14px;"></div>
+        <label>Importo da investire per il ribilanciamento (€)</label>
+        <input type="number" id="allocAmount" step="10" placeholder="es. 150" style="max-width:200px;" />
+        <div class="hint">Imposta la % obiettivo di ciascun ETF (somma consigliata 100%): la tabella calcola quanto versare su ognuno per avvicinarti all'allocazione desiderata usando solo nuovi acquisti.</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ETF</th><th>Attuale %</th><th>Obiettivo %</th><th>Da investire</th></tr>
+            </thead>
+            <tbody id="allocBody"></tbody>
+          </table>
+        </div>
+        <div class="hint" id="allocSum" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portafoglio ETF con prezzi automatici -->
+  <div class="card" style="margin-bottom:16px;">
+    <h2><span class="ico">💹</span> Portafoglio ETF — prezzi automatici</h2>
+    <div class="hint">Inserisci <b>ISIN</b> e <b>quantità</b>: i prezzi vengono recuperati da Yahoo Finance tramite un proxy pubblico (serve per aggirare il blocco CORS del browser). Per risultati più affidabili puoi indicare direttamente il <b>ticker</b> di borsa (es. <code>SWDA.MI</code>, <code>VWCE.DE</code>).</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ISIN</th><th>Nome</th><th>Ticker</th><th>Quantità</th><th>Prezzo medio acq.</th><th>Prezzo attuale</th><th>Valore</th><th>P/L</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="holdBody"></tbody>
+      </table>
+    </div>
+    <div class="toolbar" style="justify-content:space-between;align-items:center;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="ghost" id="btnAddHold">+ Aggiungi ETF</button>
+        <button class="ghost" id="btnAddManual">+ Aggiungi asset manuale</button>
+        <button class="ghost" id="btnImportScalable">↔ Importa da Scalable</button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <span class="hint" id="holdTotalTxt" style="margin:0;">Totale: €0</span>
+        <button id="btnFetch">Aggiorna prezzi</button>
+        <button class="ghost" id="btnUseTotal">Usa come valore del mese</button>
+      </div>
+    </div>
+    <div id="holdStatus"></div>
+    <details style="margin-top:10px;">
+      <summary>Impostazioni avanzate (proxy CORS)</summary>
+      <label style="margin-top:8px;">URL proxy (antepone l'URL codificato alla richiesta)</label>
+      <input type="text" id="proxyUrl" />
+      <div class="hint">Lascia vuoto per usare i proxy predefiniti (provati in automatico uno dopo l'altro). Alternative valide: <code>https://api.allorigins.win/get?url=</code> · <code>https://api.codetabs.com/v1/proxy/?quest=</code></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="ghost" id="btnLocalProxy" type="button">Usa proxy locale (127.0.0.1:8787)</button>
+        <button class="ghost" id="btnClearProxy" type="button">Ripristina predefiniti</button>
+      </div>
+      <div class="hint" style="margin-top:10px;line-height:1.6;">
+        <b>Proxy locale (consigliato, veloce e affidabile):</b> avvia lo script <code>price_proxy.py</code> presente nella cartella con <code>python price_proxy.py</code>,
+        poi premi «Usa proxy locale». Recupera i prezzi direttamente dal tuo PC senza dipendere da servizi esterni.
+      </div>
+    </details>
+  </div>
+
+  <!-- Suggerimento -->
+  <div id="suggestion" style="margin-bottom:16px;">
+    <div class="sug-head">Suggerimento (anteprima in tempo reale)</div>
+    <div class="sug-main neu" id="sugMain">Inserisci il valore attuale del portafoglio…</div>
+    <div class="sug-grid" id="sugGrid"></div>
+    <div id="sugNote"></div>
+  </div>
+
+  <!-- Riepilogo -->
+  <div class="card" style="margin-bottom:16px;">
+    <h2><span class="ico">📊</span> Riepilogo</h2>
+    <div class="grid" style="margin-bottom:0;">
+      <div class="stat"><div class="k">Valore portafoglio</div><div class="v neu" id="sVal">€0</div></div>
+      <div class="stat"><div class="k">Liquidità cumulata</div><div class="v neu" id="sLiq">€0</div></div>
+      <div class="stat"><div class="k">Patrimonio totale</div><div class="v neu" id="sTot">€0</div></div>
+      <div class="stat"><div class="k">Capitale versato</div><div class="v neu" id="sInv">€0</div></div>
+      <div class="stat"><div class="k">Performance totale</div><div class="v neu" id="sPerf">€0</div></div>
+    </div>
+  </div>
+
+  <!-- Rendimento annualizzato -->
+  <div class="card" style="margin-bottom:16px;">
+    <h2><span class="ico">📐</span> Rendimento annualizzato</h2>
+    <div class="hint">I mesi registrati sono considerati consecutivi (cadenza mensile del PAC). Il <b>TWR</b> misura la bravura degli strumenti (indipendente da quando versi); l'<b>XIRR</b> (o TIR) è il rendimento reale annuo dei <i>tuoi</i> versamenti, tenendo conto di quanto e quando hai messo.</div>
+    <div class="grid" style="margin-bottom:0;">
+      <div class="stat"><div class="k">Rendimento reale annuo (XIRR)</div><div class="v neu" id="rXirr">—</div></div>
+      <div class="stat"><div class="k">TWR annualizzato</div><div class="v neu" id="rTwrA">—</div></div>
+      <div class="stat"><div class="k">TWR totale</div><div class="v neu" id="rTwrT">—</div></div>
+      <div class="stat"><div class="k">Periodo</div><div class="v neu" id="rSpan">—</div></div>
+    </div>
+  </div>
+
+  <!-- Proiezione verso l'obiettivo -->
+  <div class="card" style="margin-bottom:16px;">
+    <h2><span class="ico">🎯</span> Proiezione verso l'obiettivo</h2>
+    <div class="row3">
+      <div>
+        <label>Obiettivo patrimonio (€)</label>
+        <input type="number" id="projGoal" step="1000" placeholder="es. 100000" />
+      </div>
+      <div>
+        <label>Rendimento annuo ipotizzato (%)</label>
+        <input type="number" id="projRate" step="0.5" placeholder="es. 5" />
+      </div>
+      <div>
+        <label>Versamento mensile (€)</label>
+        <input type="number" id="projMonthly" step="10" placeholder="auto" />
+      </div>
+    </div>
+    <div class="note" id="projInfo" style="margin-top:6px;">Imposta un obiettivo per vedere la stima.</div>
+  </div>
+
+  <!-- Grafici -->
+  <div class="card" style="margin-bottom:16px;">
+    <h2><span class="ico">📈</span> Grafici</h2>
+    <div id="chartModes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+      <button id="btnCProfit">Profitti generati</button>
+      <button id="btnCVersato" class="ghost">Versato vs Patrimonio</button>
+      <button id="btnCRend" class="ghost">Rendimento %</button>
+      <button id="btnCPerf" class="ghost">Performance mensile</button>
+      <button id="btnCComp" class="ghost">Composizione patrimonio</button>
+      <button id="btnCPl" class="ghost">P/L per asset</button>
+      <button id="btnCProj" class="ghost">Proiezione obiettivo</button>
+      <button id="btnCBench" class="ghost">Benchmark</button>
+    </div>
+    <div id="chartControls" style="display:none;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+      <input type="text" id="benchSymbol" placeholder="Ticker indice (es. SWDA.MI)" style="max-width:220px;" />
+      <button class="ghost" id="btnLoadBench" type="button">Carica benchmark</button>
+      <span class="hint" id="benchStatus" style="margin:0;"></span>
+    </div>
+    <div class="hint" id="lineHint" style="margin:0 0 10px;min-height:16px;"></div>
+    <canvas id="lineCanvas" height="280" style="width:100%;height:280px;display:block;"></canvas>
+    <div class="hint" id="lineLegend" style="margin-top:8px;"></div>
+    <div class="hint" id="lineDesc" style="margin-top:10px;">Passa il mouse sul grafico per i dettagli.</div>
+  </div>
+
+  <!-- Punti d'ingresso crolli -->
+  <div class="card" style="margin-bottom:16px;">
+    <h2><span class="ico">📉</span> Punti d'ingresso in caso di crollo</h2>
+    <div class="hint">Le percentuali dividono la <b>liquidità di riserva</b> (la liquidità attuale) tra le tre soglie e <b>devono sommare a 100%</b>. Riserva la quota maggiore ai drawdown più profondi: ogni importo è calcolato sulla riserva iniziale, così i grandi cali ricevono sempre la fetta più grande anche dopo aver già investito nei primi scaglioni.</div>
+    <div class="row3" style="margin-bottom:14px;">
+      <div>
+        <label>Soglia 1 (%) → % riserva</label>
+        <div class="row2">
+          <input type="number" id="dd1" step="1" value="-10" />
+          <input type="number" id="dp1" step="1" value="20" />
+        </div>
+      </div>
+      <div>
+        <label>Soglia 2 (%) → % riserva</label>
+        <div class="row2">
+          <input type="number" id="dd2" step="1" value="-20" />
+          <input type="number" id="dp2" step="1" value="30" />
+        </div>
+      </div>
+      <div>
+        <label>Soglia 3 (%) → % riserva</label>
+        <div class="row2">
+          <input type="number" id="dd3" step="1" value="-30" />
+          <input type="number" id="dp3" step="1" value="50" />
+        </div>
+      </div>
+    </div>
+    <div id="crashInfo" class="note">In attesa di dati…</div>
+    <div id="crashLevels" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- Storico -->
+  <div class="card" style="margin-bottom:16px;">
+    <h2><span class="ico">🗂️</span> Storico mensile</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Mese</th>
+            <th>Valore pre-versamento</th>
+            <th>Performance</th>
+            <th>Versato dal conto</th>
+            <th>Investito</th>
+            <th>→ Liquidità</th>
+            <th>← da Liquidità</th>
+            <th>Liquidità cum.</th>
+            <th>Valore fine mese</th>
+            <th>Patrimonio totale</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+    <div class="toolbar">
+      <button class="ghost" id="btnExport">Esporta JSON</button>
+      <button class="ghost" id="btnImport">Importa JSON</button>
+      <button class="ghost" id="btnImportHistory">↔ Importa storico da Scalable</button>
+      <button class="ghost" id="btnRestoreBackup">↩ Ripristina backup</button>
+      <button class="ghost" id="btnReset">Azzera tutto</button>
+      <input type="file" id="fileImport" accept="application/json" style="display:none;" />
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <h2><span class="ico">☁️</span> Sincronizzazione cloud (Firebase + Google)</h2>
+    <div class="hint" style="margin-top:0;line-height:1.6;">
+      Accedi con il tuo account <b>Google</b> su PC e telefono: i dati vengono salvati in cloud
+      e sincronizzati in tempo reale tra tutti i dispositivi collegati allo stesso account.
+      Inserisci una sola volta la configurazione del tuo progetto Firebase.
+    </div>
+    <div class="grid" style="margin-top:14px;">
+      <div>
+        <label>Configurazione Firebase (incolla l'oggetto <code>firebaseConfig</code>)</label>
+        <textarea id="fbConfig" spellcheck="false" placeholder='{
+  "apiKey": "...",
+  "authDomain": "tuo-progetto.firebaseapp.com",
+  "projectId": "tuo-progetto",
+  "appId": "..."
+}' style="width:100%;min-height:120px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label>Account</label>
+        <div id="fbUser" class="hint" style="margin-top:0;font-size:14px;color:var(--text);">Non hai effettuato l'accesso.</div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button id="btnGoogleLogin">🔑 Accedi con Google</button>
+          <button class="ghost" id="btnGoogleLogout">Esci</button>
+        </div>
+        <div class="hint" style="margin-top:10px;">
+          Usa lo <b>stesso account Google</b> su ogni dispositivo per vedere gli stessi dati.
+        </div>
+      </div>
+    </div>
+    <div id="fbStatus" class="note" style="margin-top:12px;">Non connesso.</div>
+  </div>
+
+  <details style="max-width:1400px;margin:0 auto 40px;">
+    <summary>Come funziona il calcolo della quota</summary>
+    <div class="hint" style="margin-top:10px;line-height:1.6;">
+      Ogni mese il portafoglio deve crescere di almeno la <b>crescita target</b> (150€).
+      Detta <b>P</b> la performance rispetto al mese precedente:<br>
+      • <b>P ≥ 50€</b> → investi la quota minima (100€) e metti 50€ in liquidità.<br>
+      • <b>0 ≤ P &lt; 50€</b> → investi <b>target − P</b>, il resto del budget va in liquidità.<br>
+      • <b>P &lt; 0</b> → investi tutto il budget (150€) e integri <b>|P|</b> attingendo alla liquidità (se sufficiente) per centrare comunque il +150€.
+    </div>
+  </details>
+</div>
+
+<div id="scalableModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(2,6,23,.72);align-items:center;justify-content:center;padding:20px;">
+  <div class="card" style="max-width:640px;width:100%;max-height:88vh;overflow:auto;">
+    <h2 style="margin-top:0;"><span class="ico">↔</span> Importa posizioni da Scalable</h2>
+    <div class="hint" style="margin-top:0;line-height:1.6;">
+      Chiedi al tuo assistente AI collegato a Scalable (o alla CLI ufficiale) di
+      <b>esportare le posizioni in JSON</b> e incolla qui il risultato. Vengono letti
+      ISIN, nome, ticker, quantità, prezzo medio di carico, prezzo attuale e valuta.
+    </div>
+    <label style="margin-top:12px;">JSON delle posizioni</label>
+    <textarea id="scalableJson" spellcheck="false" placeholder='Es.
+{
+  "positions": [
+    { "isin": "IE00B4L5Y983", "name": "iShares Core MSCI World", "quantity": 12.5, "averagePrice": 82.4, "currentPrice": 95.1, "currency": "EUR" }
+  ]
+}'
+      style="width:100%;min-height:220px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;resize:vertical;"></textarea>
+    <label style="margin-top:12px;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:normal;font-size:13px;color:var(--text);cursor:pointer;">
+      <input type="checkbox" id="scalableReplace" style="width:auto;" />
+      Sostituisci le posizioni ETF esistenti (default: aggiunge senza cancellare)
+    </label>
+    <div id="scalableMsg" class="hint" style="min-height:18px;"></div>
+    <div class="toolbar" style="justify-content:flex-end;">
+      <button class="ghost" id="btnScalableCancel">Annulla</button>
+      <button id="btnScalableConfirm">Importa</button>
+    </div>
+  </div>
+</div>
+
+<div id="historyModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(2,6,23,.72);align-items:center;justify-content:center;padding:20px;">
+  <div class="card" style="max-width:640px;width:100%;max-height:88vh;overflow:auto;">
+    <h2 style="margin-top:0;"><span class="ico">🗂️</span> Importa storico mensile da Scalable</h2>
+    <div class="hint" style="margin-top:0;line-height:1.6;">
+      Chiedi al tuo assistente AI collegato a Scalable una <b>serie mensile</b> con,
+      per ogni mese: <b>etichetta/data</b>, <b>valore del portafoglio a fine mese</b>
+      e <b>versamento netto</b> (denaro nuovo entrato). Incolla qui il JSON.
+    </div>
+    <label style="margin-top:12px;">JSON dello storico mensile</label>
+    <textarea id="historyJson" spellcheck="false" placeholder='Es.
+{
+  "storico": [
+    { "mese": "2025-01", "valore": 10250.40, "versamento": 500 },
+    { "mese": "2025-02", "valore": 11020.10, "versamento": 500 }
+  ]
+}'
+      style="width:100%;min-height:220px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;resize:vertical;"></textarea>
+    <label style="margin-top:12px;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:normal;font-size:13px;color:var(--text);cursor:pointer;">
+      <input type="checkbox" id="historyReplace" style="width:auto;" />
+      Sostituisci lo storico esistente (default: aggiunge in coda senza cancellare)
+    </label>
+    <div id="historyMsg" class="hint" style="min-height:18px;"></div>
+    <div class="toolbar" style="justify-content:flex-end;">
+      <button class="ghost" id="btnHistoryCancel">Annulla</button>
+      <button id="btnHistoryConfirm">Importa</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const LS_KEY = "pacEtfState_v1";
+
+  const $ = (id) => document.getElementById(id);
+  const eur = (n) => (n < 0 ? "-€" : "€") + Math.abs(n).toLocaleString("it-IT", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+
+  let state = {
+    initValue: 0,
+    initLiq: 0,
+    cfg: { budget: 150, target: 150, minInvest: 100 },
+    crash: [ { dd: -10, pct: 25 }, { dd: -20, pct: 50 }, { dd: -30, pct: 100 } ],
+    months: [], // { label, observed }
+    holdings: [], // { isin, name, symbol, qty, price, currency, target }
+    allocAmount: "",
+    proxy: "",
+    goal: "", projRate: "", projMonthly: "", benchSymbol: ""
+  };
+
+  // ---- stato sincronizzazione cloud ----
+  const CLOUD_CFG_KEY = "pacEtfFirebaseConfig";
+  const EMBEDDED_FB_CONFIG = JSON.stringify({
+    apiKey: "AIzaSyBeQirfiLlK0s8fHhwBmireNfgmoDrC494",
+    authDomain: "sincro-ai.firebaseapp.com",
+    projectId: "sincro-ai",
+    storageBucket: "sincro-ai.firebasestorage.app",
+    messagingSenderId: "191255135738",
+    appId: "1:191255135738:web:5126c1b0752ace5ce15043",
+    measurementId: "G-Y2H894V0R9"
+  }, null, 2);
+  const CLIENT_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  let lastLocalChange = parseInt(localStorage.getItem(LS_KEY + "_updatedAt") || "0", 10) || 0;
+  let cloud = { app: null, db: null, auth: null, user: null, docRef: null, unsub: null, connected: false, applyingRemote: false, uploadTimer: null };
+
+  // ---- core rule ----
+  function computeSuggestion(perf, liqAvailable, cfg) {
+    const { budget, target, minInvest } = cfg;
+    const needed = target - perf; // investment needed to reach +target growth
+    let invest, toLiq = 0, fromLiq = 0, shortfall = 0;
+
+    if (needed <= minInvest) {
+      // performance già forte
+      invest = minInvest;
+      toLiq = budget - minInvest;
+    } else if (needed <= budget) {
+      invest = needed;
+      toLiq = budget - needed;
+    } else {
+      const extra = needed - budget; // = |perf| quando perf<0
+      fromLiq = Math.min(extra, Math.max(0, liqAvailable));
+      invest = budget + fromLiq;
+      shortfall = extra - fromLiq; // liquidità insufficiente
+    }
+    return { invest, toLiq, fromLiq, needed, shortfall };
+  }
+
+  // ---- derive full timeline from state ----
+  function derive() {
+    const cfg = state.cfg;
+    const rows = [];
+    let prevEnd = state.initValue;
+    let liq = state.initLiq;
+    let totalInvested = 0;
+    let contributed = num(state.initValue) + num(state.initLiq); // capitale versato dal conto (valore iniziale + liquidità iniziale)
+    let prevPatr = num(state.initValue) + num(state.initLiq);    // patrimonio totale (portafoglio + liquidità) di fine mese precedente
+
+    for (let i = 0; i < state.months.length; i++) {
+      const m = state.months[i];
+      const observed = num(m.observed);
+      const marketDelta = observed - prevEnd; // variazione grezza, usata solo dalla regola di suggerimento
+      const s = m.real
+        ? { invest: num(m.rInvest), toLiq: num(m.rToLiq), fromLiq: num(m.rFromLiq), needed: 0, shortfall: 0 }
+        : computeSuggestion(marketDelta, liq, cfg);
+      const endVal = observed + s.invest;
+      const newLiq = liq + s.toLiq - s.fromLiq;
+      totalInvested += s.invest;
+      // denaro nuovo entrato dal conto questo mese.
+      // Se il mese è "reale" e hai indicato un versamento esplicito, usa quello;
+      // altrimenti = quota investita + accantonata − prelevata dalla riserva.
+      const deposit = (m.real && m.rDeposit !== undefined && m.rDeposit !== "" && m.rDeposit !== null)
+        ? num(m.rDeposit)
+        : (s.invest + s.toLiq - s.fromLiq);
+      // Performance = SOLO MERCATO = variazione del patrimonio totale meno i versamenti dal conto.
+      // I travasi interni (portafoglio ↔ liquidità) non cambiano il patrimonio, quindi non influenzano la performance.
+      const patr = endVal + newLiq;
+      const perf = patr - prevPatr - deposit;
+      liq = newLiq;
+      contributed += deposit;
+      rows.push({
+        label: m.label || ("Mese " + (i + 1)),
+        observed, perf,
+        invest: s.invest, toLiq: s.toLiq, fromLiq: s.fromLiq,
+        shortfall: s.shortfall,
+        liq, endVal, patr, deposit, contributed
+      });
+      prevEnd = endVal;
+      prevPatr = patr;
+    }
+    return { rows, liq, prevEnd, totalInvested, contributed };
+  }
+
+  // ---- rendimenti annualizzati (TWR + XIRR) ----
+  // Ipotesi: i mesi registrati sono consecutivi (cadenza mensile).
+  function computeReturns(d) {
+    const init0 = num(state.initValue) + num(state.initLiq);
+    const n = d.rows.length;
+    if (!n) return null;
+    const patrLast = d.rows[n - 1].patr;
+
+    // TWR: concatena i rendimenti mensili di mercato (perf / patrimonio d'inizio mese)
+    let twr = 1, prev = init0, counted = 0;
+    d.rows.forEach(r => {
+      if (prev > 0) { twr *= (1 + r.perf / prev); counted++; }
+      prev = r.patr;
+    });
+    twr = counted ? twr - 1 : null;
+    const twrAnnual = (twr != null && n > 0) ? Math.pow(1 + twr, 12 / n) - 1 : null;
+
+    // XIRR: rendimento reale annuo dai flussi di cassa (versamenti nel tempo)
+    const cfs = [];
+    if (init0 > 0) cfs.push({ t: 0, cf: -init0 });
+    d.rows.forEach((r, i) => { if (r.deposit) cfs.push({ t: (i + 0.5) / 12, cf: -r.deposit }); });
+    cfs.push({ t: n / 12, cf: patrLast });
+    const xirr = solveXirr(cfs);
+
+    return { twr, twrAnnual, xirr, months: n };
+  }
+
+  // NPV = 0 → tasso annuo. Newton con clamp + ripiego a bisezione.
+  function solveXirr(cfs) {
+    const hasNeg = cfs.some(c => c.cf < 0), hasPos = cfs.some(c => c.cf > 0);
+    if (!hasNeg || !hasPos) return null;
+    const npv = (r) => cfs.reduce((s, c) => s + c.cf / Math.pow(1 + r, c.t), 0);
+    let r = 0.1;
+    for (let i = 0; i < 60; i++) {
+      const f = npv(r);
+      const d = cfs.reduce((s, c) => s + (-c.t) * c.cf / Math.pow(1 + r, c.t + 1), 0);
+      if (Math.abs(d) < 1e-10) break;
+      let rn = r - f / d;
+      if (!isFinite(rn)) break;
+      if (rn <= -0.9999) rn = -0.9999;
+      if (Math.abs(rn - r) < 1e-8) { r = rn; break; }
+      r = rn;
+    }
+    if (isFinite(r) && Math.abs(npv(r)) < 1e-4) return r;
+    // ripiego: bisezione tra -0.99 e 10
+    let lo = -0.99, hi = 10, flo = npv(lo);
+    if (flo * npv(hi) > 0) return null;
+    for (let i = 0; i < 200; i++) {
+      const mid = (lo + hi) / 2, fm = npv(mid);
+      if (Math.abs(fm) < 1e-6) return mid;
+      if (flo * fm < 0) hi = mid; else { lo = mid; flo = fm; }
+    }
+    return (lo + hi) / 2;
+  }
+
+  function renderReturns(d) {
+    const rX = $("rXirr"), rA = $("rTwrA"), rT = $("rTwrT"), rS = $("rSpan");
+    if (!rX) return;
+    const ret = computeReturns(d);
+    const setV = (el, val, isPct) => {
+      if (val == null || !isFinite(val)) { el.textContent = "—"; el.className = "v neu"; return; }
+      const pct = isPct ? val * 100 : val;
+      const s = pct >= 0 ? "+" : "";
+      el.textContent = s + pct.toFixed(1).replace(".", ",") + "%";
+      el.className = "v " + (pct > 0 ? "pos" : pct < 0 ? "neg" : "neu");
+    };
+    if (!ret) { setV(rX, null); setV(rA, null); setV(rT, null); rS.textContent = "—"; rS.className = "v neu"; return; }
+    setV(rX, ret.xirr, true);
+    setV(rA, ret.twrAnnual, true);
+    setV(rT, ret.twr, true);
+    const yrs = ret.months / 12;
+    rS.textContent = ret.months + (ret.months === 1 ? " mese" : " mesi") + (yrs >= 1 ? " (" + yrs.toFixed(1).replace(".", ",") + " anni)" : "");
+    rS.className = "v neu";
+  }
+
+  // ---- proiezione verso l'obiettivo ----
+  function monthsToGoal(startPatr, monthly, annualRatePct, goal) {
+    if (goal <= startPatr) return 0;
+    const rm = annualRatePct / 100 / 12;
+    let p = startPatr, m = 0;
+    while (p < goal && m < 1200) { p = p * (1 + rm) + monthly; m++; }
+    return m >= 1200 ? null : m;
+  }
+
+  function avgMonthlyDeposit(d) {
+    if (!d.rows.length) return num(state.cfg.budget);
+    const tot = d.rows.reduce((a, r) => a + num(r.deposit), 0);
+    return tot / d.rows.length;
+  }
+
+  function renderProjection(d) {
+    const info = $("projInfo");
+    if (!info) return;
+    const goal = num(state.goal);
+    const rate = state.projRate === "" || state.projRate == null ? 5 : num(state.projRate);
+    const startPatr = d.rows.length ? d.rows[d.rows.length - 1].patr : (num(state.initValue) + num(state.initLiq));
+    const monthly = state.projMonthly === "" || state.projMonthly == null ? avgMonthlyDeposit(d) : num(state.projMonthly);
+    if (!goal || goal <= 0) { info.className = "note"; info.innerHTML = "Imposta un obiettivo per vedere la stima."; return; }
+    if (goal <= startPatr) { info.className = "note"; info.innerHTML = "🎉 Obiettivo già raggiunto! Patrimonio attuale <b>" + eur(startPatr) + "</b>."; return; }
+    const m = monthsToGoal(startPatr, monthly, rate, goal);
+    const monTxt = "versando <b>" + eur(monthly) + "/mese</b> con un rendimento ipotizzato del <b>" + rate.toFixed(1).replace(".", ",") + "%/anno</b>";
+    if (m == null) { info.className = "note warn"; info.innerHTML = "Con questi parametri l'obiettivo di <b>" + eur(goal) + "</b> non viene raggiunto entro 100 anni. Aumenta il versamento mensile o il rendimento ipotizzato."; return; }
+    const date = new Date(); date.setMonth(date.getMonth() + m);
+    const dtxt = date.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
+    const yrs = m / 12;
+    info.className = "note";
+    info.innerHTML = "Partendo da <b>" + eur(startPatr) + "</b> e " + monTxt + ", raggiungi l'obiettivo di <b>" + eur(goal) +
+      "</b> tra <b>" + m + " mesi</b> (≈ " + yrs.toFixed(1).replace(".", ",") + " anni), verso <b>" + dtxt + "</b>.";
+  }
+
+  // ---- preview for the "new month" input ----
+  function updatePreview() {
+    const d = derive();
+    const cfg = state.cfg;
+    const raw = $("mValue").value;
+    const sugMain = $("sugMain");
+    const sugGrid = $("sugGrid");
+    const sugNote = $("sugNote");
+
+    if (raw === "" || isNaN(parseFloat(raw))) {
+      sugMain.textContent = "Inserisci il valore attuale del portafoglio…";
+      sugMain.className = "sug-main neu";
+      sugGrid.innerHTML = "";
+      sugNote.innerHTML = "";
+      return;
+    }
+
+    const observed = num(raw);
+    const prevEnd = d.rows.length ? d.rows[d.rows.length - 1].endVal : state.initValue;
+    const liq = d.liq;
+    const perf = observed - prevEnd;
+    const s = computeSuggestion(perf, liq, cfg);
+
+    sugMain.innerHTML = "Investi <b>" + eur(s.invest) + "</b> questo mese";
+    sugMain.className = "sug-main pos";
+
+    const perfCls = perf > 0 ? "pos" : perf < 0 ? "neg" : "neu";
+    sugGrid.innerHTML =
+      chip("Performance mese", eur(perf), perfCls) +
+      chip("In liquidità (+)", eur(s.toLiq), s.toLiq > 0 ? "pos" : "neu") +
+      chip("Dalla liquidità (−)", eur(s.fromLiq), s.fromLiq > 0 ? "neg" : "neu") +
+      chip("Liquidità dopo", eur(liq + s.toLiq - s.fromLiq), "neu") +
+      chip("Valore fine mese", eur(observed + s.invest), "neu");
+
+    let note = "";
+    if (s.shortfall > 0.001) {
+      note = '<div class="note bad">⚠️ Liquidità insufficiente per centrare il +' + eur(cfg.target) +
+             ': mancano ' + eur(s.shortfall) + '. Il portafoglio crescerà comunque il più possibile.</div>';
+    } else if (perf >= (cfg.target - cfg.minInvest)) {
+      note = '<div class="note">La performance ha già coperto (quasi) tutto: investi la quota minima e accantoni ' + eur(s.toLiq) + '.</div>';
+    } else if (perf < 0) {
+      note = '<div class="note warn">Performance negativa: investi tutto il budget e integri ' + eur(s.fromLiq) + ' dalla liquidità.</div>';
+    }
+    sugNote.innerHTML = note;
+  }
+
+  function chip(k, v, cls) {
+    return '<div class="chip"><div class="k">' + k + '</div><div class="v ' + (cls || "neu") + '">' + v + '</div></div>';
+  }
+
+  // ---- render everything ----
+  let editIdx = null;
+
+  function editRowHtml(i, r) {
+    const m = state.months[i] || {};
+    const isReal = !!m.real;
+    const depVal = (m.rDeposit !== undefined && m.rDeposit !== null && m.rDeposit !== "") ? m.rDeposit : "";
+    return '<tr class="editing">' +
+      '<td><input type="text" id="eLabel" value="' + escapeHtml(r.label) + '" /></td>' +
+      '<td><input type="number" step="0.01" id="eObserved" value="' + r.observed + '" /></td>' +
+      '<td class="muted" style="font-size:12px;">' + eur(r.perf) + '</td>' +
+      '<td><input type="number" step="0.01" id="eDeposit" value="' + depVal + '" placeholder="auto" title="Denaro nuovo entrato dal conto corrente questo mese (conta nel capitale versato). Lascia vuoto per calcolo automatico. Metti 0 se la liquidità arriva da vendite." /></td>' +
+      '<td><input type="number" step="0.01" id="eInvest" value="' + r.invest + '" /></td>' +
+      '<td><input type="number" step="0.01" id="eToLiq" value="' + r.toLiq + '" /></td>' +
+      '<td><input type="number" step="0.01" id="eFromLiq" value="' + r.fromLiq + '" /></td>' +
+      '<td colspan="3" style="font-size:12px;">' +
+        '<label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px;text-transform:none;letter-spacing:0;color:var(--muted);white-space:normal;">' +
+          '<input type="checkbox" id="eReal" style="width:auto;margin:0;"' + (isReal ? " checked" : "") + ' /> ' +
+          'Valori reali (non ricalcolare Investito/Liquidità)</label>' +
+      '</td>' +
+      '<td><span class="rowbtns">' +
+        '<button class="edit" data-save="' + i + '" title="Salva" style="color:var(--good);">✓</button>' +
+        '<button class="del" data-cancel="' + i + '" title="Annulla">✕</button>' +
+      '</span></td>' +
+      '</tr>';
+  }
+
+  function render() {
+    const d = derive();
+
+    // summary
+    const val = d.prevEnd;
+    const totalPerf = d.rows.reduce((a, r) => a + r.perf, 0);
+    $("sVal").textContent = eur(val);
+    $("sLiq").textContent = eur(d.liq);
+    $("sTot").textContent = eur(val + d.liq);
+    $("sInv").textContent = eur(d.contributed);
+    const sp = $("sPerf");
+    sp.textContent = eur(totalPerf);
+    sp.className = "v " + (totalPerf > 0 ? "pos" : totalPerf < 0 ? "neg" : "neu");
+
+    // history
+    const body = $("histBody");
+    if (!d.rows.length) {
+      body.innerHTML = '<tr><td colspan="11" class="empty">Nessun mese registrato. Aggiungi il primo mese qui sopra.</td></tr>';
+    } else {
+      body.innerHTML = d.rows.map((r, i) => {
+        if (i === editIdx) return editRowHtml(i, r);
+        const pc = r.perf > 0 ? "pos" : r.perf < 0 ? "neg" : "neu";
+        return '<tr draggable="true" data-idx="' + i + '">' +
+          '<td><span class="grip" title="Trascina per riordinare">⠿</span>' + escapeHtml(r.label) + "</td>" +
+          "<td>" + eur(r.observed) + "</td>" +
+          '<td class="' + pc + '">' + eur(r.perf) + "</td>" +
+          "<td>" + (r.deposit ? eur(r.deposit) : "—") + "</td>" +
+          "<td><b>" + eur(r.invest) + "</b></td>" +
+          "<td>" + (r.toLiq ? eur(r.toLiq) : "—") + "</td>" +
+          "<td>" + (r.fromLiq ? eur(r.fromLiq) : "—") + "</td>" +
+          "<td>" + eur(r.liq) + "</td>" +
+          "<td>" + eur(r.endVal) + "</td>" +
+          "<td><b>" + eur(r.patr) + "</b></td>" +
+          '<td><span class="rowbtns">' +
+            '<button class="mv" data-up="' + i + '" title="Sposta su"' + (i === 0 ? " disabled" : "") + '>▲</button>' +
+            '<button class="mv" data-down="' + i + '" title="Sposta giù"' + (i === d.rows.length - 1 ? " disabled" : "") + '>▼</button>' +
+            '<button class="edit" data-edit="' + i + '" title="Modifica">✎</button>' +
+            '<button class="del" data-i="' + i + '" title="Elimina">✕</button>' +
+          '</span></td>' +
+          "</tr>";
+      }).join("");
+
+      // riga patrimonio
+      const contributed = d.contributed; // capitale versato dal conto (denaro nuovo)
+      const lastEnd = d.rows[d.rows.length - 1].endVal; // portafoglio (ETF) di fine mese
+      const totDeposit = d.rows.reduce((a, r) => a + num(r.deposit), 0);
+      // patrimonio = portafoglio + liquidità cumulata; profitto considerando la liquidità
+      const liqCum = d.liq;
+      const patrimonio = lastEnd + liqCum;
+      const profitTot = patrimonio - contributed;
+      const profitTotPct = contributed ? profitTot / contributed * 100 : 0;
+      const profTotCls = profitTot > 0 ? "pos" : profitTot < 0 ? "neg" : "neu";
+      const signT = profitTot >= 0 ? "+" : "";
+      body.innerHTML += '<tr class="totrow">' +
+        '<td><b>Patrimonio</b></td>' +
+        '<td colspan="2" class="muted">Versato: <b>' + eur(contributed) + '</b></td>' +
+        '<td><b>' + eur(totDeposit) + '</b></td>' +
+        '<td colspan="3" class="muted">Portafoglio <b>' + eur(lastEnd) + '</b> + liquidità <b>' + eur(liqCum) + '</b></td>' +
+        '<td colspan="1" class="muted">Profitto: <b class="' + profTotCls + '">' + signT + eur(profitTot) +
+          '</b> (' + signT + profitTotPct.toFixed(1).replace(".", ",") + '%)</td>' +
+        '<td>' + eur(lastEnd) + '</td>' +
+        '<td><b>' + eur(patrimonio) + '</b></td>' +
+        '<td></td>' +
+        '</tr>';
+    }
+
+    renderCrash(d);
+    renderReturns(d);
+    renderProjection(d);
+    if (currentChartCfg) setLineMode(state.lineMode || "profit");
+  }
+
+  function renderCrash(d) {
+    // peak = max di tutti i valori (iniziale, osservati, fine mese)
+    let peak = state.initValue;
+    d.rows.forEach(r => { peak = Math.max(peak, r.observed, r.endVal); });
+    const current = d.rows.length ? d.rows[d.rows.length - 1].observed : state.initValue;
+    const info = $("crashInfo");
+    const box = $("crashLevels");
+
+    if (peak <= 0) {
+      info.className = "note";
+      info.textContent = "In attesa di dati…";
+      box.innerHTML = "";
+      return;
+    }
+
+    const dd = (current - peak) / peak * 100;
+    const ddCls = dd < 0 ? "neg" : "neu";
+    const reserve = Math.max(0, d.liq); // liquidità di riserva (snapshot attuale)
+    const pctSum = state.crash.reduce((a, lv) => a + num(lv.pct), 0);
+    info.className = "note" + (dd <= state.crash[0].dd ? " warn" : "");
+    info.innerHTML = "Picco: <b>" + eur(peak) + "</b> · Valore attuale: <b>" + eur(current) +
+      "</b> · Drawdown: <b class='" + ddCls + "'>" + dd.toFixed(1) + "%</b> · Riserva liquidità: <b>" + eur(reserve) + "</b>" +
+      (Math.abs(pctSum - 100) >= 0.01 ? " · <b class='warn'>somma percentuali " + pctSum.toFixed(0) + "% (dovrebbe essere 100%)</b>" : "");
+
+    // ordina per profondità (dal calo minore al maggiore) per il cumulato
+    let deployed = 0;
+    box.innerHTML = state.crash.map((lv) => {
+      const level = peak * (1 + lv.dd / 100);
+      const hit = current <= level;
+      const amount = reserve * (num(lv.pct) / 100); // quota FISSA sulla riserva
+      if (hit) deployed += amount;
+      return '<div class="lvl' + (hit ? " active" : "") + '">' +
+        '<div class="tag ' + (hit ? "neg" : "neu") + '">' + lv.dd + '%</div>' +
+        '<div class="lvl-mid">Livello prezzo: <b>' + eur(level) + '</b><br>' +
+          '<span class="badge ' + (hit ? "hit" : "safe") + '">' + (hit ? "SOGLIA SUPERATA" : "non raggiunta") + '</span></div>' +
+        '<div class="lvl-act">Investi <b class="' + (hit ? "pos" : "muted") + '">' + eur(amount) + '</b><br>' +
+          '<span class="lvl-mid">(' + lv.pct + '% della riserva)</span></div>' +
+        '</div>';
+    }).join("");
+
+    if (deployed > 0) {
+      box.innerHTML += '<div class="note warn" style="margin-top:6px;">In base al drawdown attuale dovresti aver investito complessivamente <b>' +
+        eur(Math.min(deployed, reserve)) + '</b> della riserva (restano ' + eur(Math.max(0, reserve - deployed)) + ').</div>';
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  // ---- persistence ----
+  function save() {
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    lastLocalChange = Date.now();
+    localStorage.setItem(LS_KEY + "_updatedAt", String(lastLocalChange));
+    scheduleCloudUpload();
+  }
+
+  // Salva una copia di sicurezza dello stato attuale prima di operazioni distruttive.
+  function backupState() {
+    try {
+      const snapshot = localStorage.getItem(LS_KEY) || JSON.stringify(state);
+      localStorage.setItem(LS_KEY + "_backup", snapshot);
+      localStorage.setItem(LS_KEY + "_backup_at", new Date().toISOString());
+      return true;
+    } catch (e) { return false; }
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s && typeof s === "object") state = Object.assign(state, s);
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  function syncInputsFromState() {
+    $("initValue").value = state.initValue;
+    $("initLiq").value = state.initLiq;
+    $("cfgBudget").value = state.cfg.budget;
+    $("cfgTarget").value = state.cfg.target;
+    $("cfgMin").value = state.cfg.minInvest;
+    $("dd1").value = state.crash[0].dd; $("dp1").value = state.crash[0].pct;
+    $("dd2").value = state.crash[1].dd; $("dp2").value = state.crash[1].pct;
+    $("dd3").value = state.crash[2].dd; $("dp3").value = state.crash[2].pct;
+    $("proxyUrl").value = state.proxy;
+    $("allocAmount").value = state.allocAmount || "";
+    $("projGoal").value = state.goal || "";
+    $("projRate").value = state.projRate || "";
+    $("projMonthly").value = state.projMonthly || "";
+    $("benchSymbol").value = state.benchSymbol || "";
+  }
+
+  function readConfigInputs() {
+    state.initValue = num($("initValue").value);
+    state.initLiq = num($("initLiq").value);
+    state.cfg.budget = num($("cfgBudget").value);
+    state.cfg.target = num($("cfgTarget").value);
+    state.cfg.minInvest = num($("cfgMin").value);
+    state.crash = [
+      { dd: num($("dd1").value), pct: num($("dp1").value) },
+      { dd: num($("dd2").value), pct: num($("dp2").value) },
+      { dd: num($("dd3").value), pct: num($("dp3").value) }
+    ];
+  }
+
+  // ---- events ----
+  ["initValue","initLiq","cfgBudget","cfgTarget","cfgMin","dd1","dp1","dd2","dp2","dd3","dp3"].forEach(id => {
+    $(id).addEventListener("input", () => { readConfigInputs(); save(); render(); updatePreview(); });
+  });
+
+  $("mValue").addEventListener("input", updatePreview);
+
+  ["projGoal", "projRate", "projMonthly"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      if (id === "projGoal") state.goal = $("projGoal").value;
+      if (id === "projRate") state.projRate = $("projRate").value;
+      if (id === "projMonthly") state.projMonthly = $("projMonthly").value;
+      save();
+      const d = derive();
+      renderProjection(d);
+      if (state.lineMode === "proiezione" && currentChartCfg) setLineMode("proiezione");
+    });
+  });
+
+  $("btnAdd").addEventListener("click", () => {
+    const v = $("mValue").value;
+    if (v === "" || isNaN(parseFloat(v))) { alert("Inserisci un valore valido del portafoglio."); return; }
+    readConfigInputs();
+    state.months.push({ label: $("mLabel").value.trim(), observed: num(v) });
+    $("mValue").value = "";
+    $("mLabel").value = "";
+    save(); render(); updatePreview();
+  });
+
+  // ricalcolo automatico dell'Investito nella riga in modifica:
+  // Investito = Versato dal conto − → Liquidità + ← da Liquidità
+  $("histBody").addEventListener("input", (e) => {
+    if (!["eDeposit", "eToLiq", "eFromLiq"].includes(e.target.id)) return;
+    const depEl = $("eDeposit"), invEl = $("eInvest");
+    if (!depEl || !invEl) return;
+    if (depEl.value === "" || depEl.value === null) return; // solo se il versato è impostato
+    const dep = num(depEl.value), toLiq = num($("eToLiq").value), fromLiq = num($("eFromLiq").value);
+    invEl.value = Math.round((dep - toLiq + fromLiq) * 100) / 100;
+  });
+
+  $("histBody").addEventListener("click", (e) => {
+    const del = e.target.closest(".del[data-i]");
+    if (del) {
+      const i = parseInt(del.dataset.i, 10);
+      if (confirm("Eliminare questo mese? Anche i mesi successivi verranno ricalcolati.")) {
+        state.months.splice(i, 1);
+        if (editIdx === i) editIdx = null;
+        save(); render(); updatePreview();
+      }
+      return;
+    }
+    const up = e.target.closest(".mv[data-up]");
+    if (up) {
+      const i = parseInt(up.dataset.up, 10);
+      if (i > 0) {
+        const t = state.months[i]; state.months[i] = state.months[i - 1]; state.months[i - 1] = t;
+        editIdx = null;
+        save(); render(); updatePreview();
+      }
+      return;
+    }
+    const down = e.target.closest(".mv[data-down]");
+    if (down) {
+      const i = parseInt(down.dataset.down, 10);
+      if (i < state.months.length - 1) {
+        const t = state.months[i]; state.months[i] = state.months[i + 1]; state.months[i + 1] = t;
+        editIdx = null;
+        save(); render(); updatePreview();
+      }
+      return;
+    }
+    const editBtn = e.target.closest(".edit[data-edit]");
+    if (editBtn) {
+      editIdx = parseInt(editBtn.dataset.edit, 10);
+      render();
+      const lbl = $("eLabel"); if (lbl) lbl.focus();
+      return;
+    }
+    const cancel = e.target.closest(".del[data-cancel]");
+    if (cancel) { editIdx = null; render(); return; }
+    const saveBtn = e.target.closest(".edit[data-save]");
+    if (saveBtn) {
+      const i = parseInt(saveBtn.dataset.save, 10);
+      const m = state.months[i];
+      if (!m) { editIdx = null; render(); return; }
+      const obs = $("eObserved").value;
+      if (obs === "" || isNaN(parseFloat(obs))) { alert("Inserisci un valore pre-versamento valido."); return; }
+      m.label = $("eLabel").value.trim();
+      m.observed = num(obs);
+      if ($("eReal").checked) {
+        m.real = true;
+        m.rInvest = num($("eInvest").value);
+        m.rToLiq = num($("eToLiq").value);
+        m.rFromLiq = num($("eFromLiq").value);
+        const dep = $("eDeposit").value;
+        if (dep === "" || dep === null) delete m.rDeposit;
+        else m.rDeposit = num(dep);
+      } else {
+        delete m.real; delete m.rInvest; delete m.rToLiq; delete m.rFromLiq; delete m.rDeposit;
+      }
+      editIdx = null;
+      save(); render(); updatePreview();
+      return;
+    }
+  });
+
+  // ---- riordino righe con trascinamento ----
+  (function () {
+    const body = $("histBody");
+    if (!body) return;
+    let dragIdx = null;
+    body.addEventListener("dragstart", (e) => {
+      const tr = e.target.closest("tr[data-idx]");
+      if (!tr) return;
+      dragIdx = parseInt(tr.dataset.idx, 10);
+      tr.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", String(dragIdx)); } catch (_) {}
+    });
+    body.addEventListener("dragend", () => {
+      dragIdx = null;
+      body.querySelectorAll(".dragging, .drop-above, .drop-below").forEach(el =>
+        el.classList.remove("dragging", "drop-above", "drop-below"));
+    });
+    body.addEventListener("dragover", (e) => {
+      if (dragIdx == null) return;
+      const tr = e.target.closest("tr[data-idx]");
+      if (!tr) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      const rect = tr.getBoundingClientRect();
+      const after = e.clientY > rect.top + rect.height / 2;
+      body.querySelectorAll(".drop-above, .drop-below").forEach(el =>
+        el.classList.remove("drop-above", "drop-below"));
+      tr.classList.add(after ? "drop-below" : "drop-above");
+    });
+    body.addEventListener("drop", (e) => {
+      if (dragIdx == null) return;
+      const tr = e.target.closest("tr[data-idx]");
+      if (!tr) return;
+      e.preventDefault();
+      let target = parseInt(tr.dataset.idx, 10);
+      const rect = tr.getBoundingClientRect();
+      const after = e.clientY > rect.top + rect.height / 2;
+      if (after) target++;
+      const from = dragIdx;
+      const item = state.months.splice(from, 1)[0];
+      if (from < target) target--;
+      state.months.splice(target, 0, item);
+      dragIdx = null;
+      editIdx = null;
+      save(); render(); updatePreview();
+    });
+  })();
+
+  $("btnExport").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "pac-etf.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  $("btnImport").addEventListener("click", () => $("fileImport").click());
+  $("fileImport").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const s = JSON.parse(reader.result);
+        state = Object.assign({ cfg: {}, crash: [], months: [] }, s);
+        editIdx = null;
+        save(); syncInputsFromState(); render(); renderHoldings(); updatePreview();
+        setLineMode(state.lineMode || "profit");
+      } catch (err) { alert("File non valido."); }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  $("btnReset").addEventListener("click", () => {
+    if (confirm("Azzerare tutti i dati (mesi, stato iniziale e regole)?")) {
+      localStorage.removeItem(LS_KEY);
+      location.reload();
+    }
+  });
+
+  // ---- ETF holdings (prezzi automatici) ----
+  function renderHoldings() {
+    const body = $("holdBody");
+    if (!state.holdings.length) {
+      body.innerHTML = '<tr><td colspan="9" class="empty">Nessun ETF. Aggiungine uno per calcolare il valore automaticamente.</td></tr>';
+    } else {
+      body.innerHTML = state.holdings.map((h, i) => {
+        const val = num(h.qty) * num(h.price);
+        const buy = num(h.buyPrice);
+        const plCell = plCellHtml(h);
+        if (h.manual) {
+          return "<tr>" +
+            '<td><span class="badge safe" title="Asset manuale">manuale</span></td>' +
+            '<td><input type="text" class="h-name" data-i="' + i + '" value="' + escapeHtml(h.name || "") + '" placeholder="es. Bitcoin"></td>' +
+            '<td class="muted">—</td>' +
+            '<td><input type="number" class="h-qty" data-i="' + i + '" step="any" value="' + (h.qty === 0 || h.qty ? h.qty : "") + '"></td>' +
+            '<td><input type="number" class="h-buy" data-i="' + i + '" step="any" value="' + (h.buyPrice === 0 || h.buyPrice ? h.buyPrice : "") + '" placeholder="€ PMC" style="max-width:110px;"></td>' +
+            '<td><input type="number" class="h-price" data-i="' + i + '" step="any" value="' + (h.price === 0 || h.price ? h.price : "") + '" placeholder="€ prezzo" style="max-width:120px;"></td>' +
+            '<td><b>' + (val ? eur(val) : "—") + '</b></td>' +
+            '<td>' + plCell + '</td>' +
+            '<td><button class="del h-del" data-i="' + i + '" title="Elimina">✕</button></td>' +
+          "</tr>";
+        }
+        let priceCell = "—";
+        if (h.price) {
+          priceCell = eur(h.price);
+          if (h.srcCurrency && h.srcCurrency !== "EUR" && h.srcPrice) {
+            priceCell += ' <span class="muted" style="font-size:11px;">(' +
+              num(h.srcPrice).toLocaleString("it-IT", { maximumFractionDigits: 2 }) + " " + escapeHtml(h.srcCurrency) + ")</span>";
+          }
+        }
+        return "<tr>" +
+          '<td><input type="text" class="h-isin" data-i="' + i + '" value="' + escapeHtml(h.isin || "") + '" placeholder="IE00..."></td>' +
+          '<td>' + (h.name ? escapeHtml(h.name) : '<span class="muted">—</span>') + '</td>' +
+          '<td><input type="text" class="h-sym" data-i="' + i + '" value="' + escapeHtml(h.symbol || "") + '" placeholder="auto"></td>' +
+          '<td><input type="number" class="h-qty" data-i="' + i + '" step="any" value="' + (h.qty === 0 || h.qty ? h.qty : "") + '"></td>' +
+          '<td><input type="number" class="h-buy" data-i="' + i + '" step="any" value="' + (h.buyPrice === 0 || h.buyPrice ? h.buyPrice : "") + '" placeholder="€ PMC" style="max-width:110px;"></td>' +
+          '<td>' + priceCell + '</td>' +
+          '<td><b>' + (val ? eur(val) : "—") + '</b></td>' +
+          '<td>' + plCell + '</td>' +
+          '<td><button class="del h-del" data-i="' + i + '" title="Elimina">✕</button></td>' +
+        "</tr>";
+      }).join("");
+    }
+    updateHoldTotal();
+  }
+
+  // Cella P/L (guadagno/perdita) di un singolo asset rispetto al prezzo medio di carico.
+  function plCellHtml(h) {
+    const buy = num(h.buyPrice), price = num(h.price), qty = num(h.qty);
+    if (!buy || !price || !qty) return '<span class="muted">—</span>';
+    const pl = (price - buy) * qty;
+    const pct = (price / buy - 1) * 100;
+    const cls = pl > 0 ? "pos" : pl < 0 ? "neg" : "neu";
+    const sign = pl >= 0 ? "+" : "";
+    return '<b class="' + cls + '">' + sign + eur(pl) + '</b><br><span class="muted" style="font-size:11px;">' +
+      sign + pct.toFixed(1).replace(".", ",") + '%</span>';
+  }
+
+  function holdingsTotal() {
+    let total = 0; const currencies = new Set();
+    state.holdings.forEach(h => {
+      const v = num(h.qty) * num(h.price);
+      if (v) { total += v; if (h.currency) currencies.add(h.currency); }
+    });
+    return { total, currencies: [...currencies] };
+  }
+
+  function updateHoldTotal() {
+    const { total, currencies } = holdingsTotal();
+    $("holdTotalTxt").textContent = "Totale: " + eur(total);
+    renderPie();
+    renderAllocation();
+    if (currentChartCfg) setLineMode(state.lineMode || "profit");
+  }
+
+  function renderAllocation() {
+    const body = $("allocBody");
+    if (!body) return;
+    const rows = state.holdings.map((h, i) => ({
+      i, label: h.name || h.symbol || h.isin || ("ETF " + (i + 1)),
+      value: num(h.qty) * num(h.price),
+      target: (h.target === 0 || h.target ? num(h.target) : "")
+    }));
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="4" class="empty">Nessun ETF.</td></tr>';
+      $("allocSum").innerHTML = "";
+      return;
+    }
+    body.innerHTML = rows.map((r) =>
+      "<tr>" +
+        "<td>" + escapeHtml(r.label) + "</td>" +
+        '<td class="a-cur" data-i="' + r.i + '">—</td>' +
+        '<td><input type="number" class="a-tgt" data-i="' + r.i + '" step="1" min="0" max="100" style="max-width:90px;" value="' + (r.target === "" ? "" : r.target) + '"></td>' +
+        '<td class="a-inv" data-i="' + r.i + '">—</td>' +
+      "</tr>"
+    ).join("");
+    updateAllocNumbers();
+  }
+
+  // Ricalcola solo % attuale, importo da investire e riepilogo (senza ricreare gli input).
+  function updateAllocNumbers() {
+    if (!$("allocBody") || !state.holdings.length) return;
+    const values = state.holdings.map(h => num(h.qty) * num(h.price));
+    const total = values.reduce((a, v) => a + v, 0);
+    const amount = num($("allocAmount").value);
+    const targets = state.holdings.map(h => num(h.target));
+    const gaps = state.holdings.map((h, k) => Math.max(0, (targets[k] / 100) * (total + amount) - values[k]));
+    const gapSum = gaps.reduce((a, g) => a + g, 0);
+    const invest = state.holdings.map((h, k) => {
+      if (amount <= 0) return 0;
+      if (gapSum > 0) return amount * gaps[k] / gapSum;
+      return amount * (targets[k] / 100);
+    });
+    document.querySelectorAll("#allocBody .a-cur").forEach(td => {
+      const k = parseInt(td.dataset.i, 10);
+      td.textContent = (total > 0 ? (values[k] / total * 100) : 0).toFixed(1).replace(".", ",") + "%";
+    });
+    document.querySelectorAll("#allocBody .a-inv").forEach(td => {
+      const k = parseInt(td.dataset.i, 10);
+      td.innerHTML = invest[k] > 0 ? '<b class="pos">' + eur(invest[k]) + "</b>" : "—";
+    });
+    const tgtSum = targets.reduce((a, t) => a + t, 0);
+    const investSum = invest.reduce((a, v) => a + v, 0);
+    let msg = "Somma obiettivi: <b class='" + (Math.abs(tgtSum - 100) < 0.01 ? "pos" : "warn") + "'>" + tgtSum.toFixed(0) + "%</b>";
+    if (Math.abs(tgtSum - 100) >= 0.01) msg += " (consigliato 100%)";
+    if (amount > 0) msg += " · Totale da investire: <b>" + eur(investSum) + "</b>";
+    $("allocSum").innerHTML = msg;
+  }
+
+  // Ogni voce ha uno "stile" di risposta:
+  //  - "raw":  il proxy restituisce direttamente il body → si fa JSON.parse
+  //  - "wrap": allorigins /get → { contents: "<json come stringa>" }
+  //  - "direct": nessun proxy (funziona solo se Yahoo mandasse header CORS: raro)
+  function proxyList() {
+    const defaults = [
+      { url: "https://api.allorigins.win/get?url=", style: "wrap" },
+      { url: "https://api.allorigins.win/raw?url=", style: "raw" },
+      { url: "https://api.codetabs.com/v1/proxy/?quest=", style: "raw" },
+      { url: "https://thingproxy.freeboard.io/fetch/", style: "raw" }
+    ];
+    const list = [];
+    const custom = state.proxy && state.proxy.trim();
+    if (custom) {
+      // heuristica: allorigins /get → wrap; tutto il resto (incluso proxy locale) → raw
+      const style = /allorigins.*\/get/i.test(custom) ? "wrap" : "raw";
+      list.push({ url: custom, style });
+    }
+    defaults.forEach(d => { if (!list.some(x => x.url === d.url)) list.push(d); });
+    return list;
+  }
+
+  // fetch con timeout: se un proxy non risponde entro N secondi, passa al successivo.
+  async function fetchWithTimeout(fullUrl, ms) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try { return await fetch(fullUrl, { signal: ctrl.signal }); }
+    finally { clearTimeout(t); }
+  }
+
+  async function fetchJson(url) {
+    let lastErr;
+    for (const p of proxyList()) {
+      try {
+        const isLocal = /localhost|127\.0\.0\.1/.test(p.url);
+        const r = await fetchWithTimeout(p.url + encodeURIComponent(url), isLocal ? 15000 : 8000);
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const txt = await r.text();
+        let jsonText = txt;
+        if (p.style === "wrap") {
+          const outer = JSON.parse(txt);
+          if (outer && typeof outer.contents === "string") jsonText = outer.contents;
+          else throw new Error("proxy senza 'contents'");
+        }
+        return JSON.parse(jsonText);
+      } catch (err) {
+        lastErr = (err && err.name === "AbortError") ? new Error("timeout proxy") : err;
+      }
+    }
+    // Se arriviamo qui, TUTTI i proxy hanno fallito.
+    const msg = (lastErr && lastErr.message) || "";
+    if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
+      throw new Error("rete/proxy bloccati dal browser (nessun proxy raggiungibile)");
+    }
+    throw new Error(msg || "nessun proxy raggiungibile");
+  }
+
+  // GBp = penny inglesi: il prezzo va diviso per 100 e la valuta è GBP.
+  function normalizePrice(price, currency) {
+    if (currency === "GBp" || currency === "GBX") return { price: price / 100, currency: "GBP" };
+    if (currency === "ZAc") return { price: price / 100, currency: "ZAR" };
+    if (currency === "ILA") return { price: price / 100, currency: "ILS" };
+    return { price, currency };
+  }
+
+  async function resolveSymbol(isin) {
+    const d = await fetchJson("https://query1.finance.yahoo.com/v1/finance/search?q=" + encodeURIComponent(isin));
+    const q = (d.quotes || []).find(x => x.symbol);
+    if (!q) throw new Error("nessun ticker trovato per l'ISIN");
+    return { symbol: q.symbol, name: q.shortname || q.longname || "" };
+  }
+
+  async function fetchQuote(symbol) {
+    const d = await fetchJson("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(symbol) + "?interval=1d&range=1d");
+    const m = d.chart && d.chart.result && d.chart.result[0] && d.chart.result[0].meta;
+    if (!m || m.regularMarketPrice == null) throw new Error("prezzo non disponibile");
+    const norm = normalizePrice(m.regularMarketPrice, m.currency || "");
+    return { price: norm.price, currency: norm.currency, name: m.longName || m.shortName || "" };
+  }
+
+  // Tasso di cambio verso EUR (con cache per esecuzione). 1 unità di 'cur' = X EUR.
+  async function fetchFxRate(cur, cache) {
+    if (!cur || cur === "EUR") return 1;
+    if (cache && cache[cur] != null) return cache[cur];
+    let rate = null;
+    // 1) coppia diretta cur→EUR
+    try {
+      const d = await fetchJson("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(cur) + "EUR=X?interval=1d&range=1d");
+      const m = d.chart && d.chart.result && d.chart.result[0] && d.chart.result[0].meta;
+      if (m && m.regularMarketPrice != null) rate = m.regularMarketPrice;
+    } catch (e) { /* provo l'inversa */ }
+    // 2) coppia inversa EUR→cur → 1/rate
+    if (rate == null) {
+      const d = await fetchJson("https://query1.finance.yahoo.com/v8/finance/chart/EUR" + encodeURIComponent(cur) + "=X?interval=1d&range=1d");
+      const m = d.chart && d.chart.result && d.chart.result[0] && d.chart.result[0].meta;
+      if (m && m.regularMarketPrice) rate = 1 / m.regularMarketPrice;
+    }
+    if (rate == null) throw new Error("cambio " + cur + "→EUR non disponibile");
+    if (cache) cache[cur] = rate;
+    return rate;
+  }
+
+  async function updatePrices() {
+    const status = $("holdStatus");
+    if (!state.holdings.length) { status.innerHTML = ""; return; }
+    const btn = $("btnFetch");
+    btn.disabled = true; const label = btn.textContent; btn.textContent = "Aggiornamento…";
+    status.className = "note"; status.textContent = "Recupero prezzi in corso…";
+    let ok = 0, fail = 0; const errs = []; const fxCache = {};
+    for (const h of state.holdings) {
+      if (h.manual) continue; // asset manuale: prezzo inserito a mano, non aggiornare
+      try {
+        if (!h.symbol && h.isin) {
+          const r = await resolveSymbol(h.isin.trim());
+          h.symbol = r.symbol; if (!h.name) h.name = r.name;
+        }
+        if (!h.symbol) throw new Error("ISIN o ticker mancante");
+        const q = await fetchQuote(h.symbol.trim());
+        if (q.currency && q.currency !== "EUR") {
+          const rate = await fetchFxRate(q.currency, fxCache);
+          h.srcPrice = q.price; h.srcCurrency = q.currency;
+          h.price = q.price * rate; h.currency = "EUR";
+        } else {
+          h.srcPrice = 0; h.srcCurrency = "";
+          h.price = q.price; h.currency = "EUR";
+        }
+        if (!h.name && q.name) h.name = q.name;
+        ok++;
+      } catch (err) {
+        h.price = 0; fail++;
+        errs.push((h.isin || h.symbol || "riga") + ": " + err.message);
+      }
+    }
+    save(); renderHoldings();
+    btn.disabled = false; btn.textContent = label;
+    const blocked = errs.some(e => /rete\/proxy bloccati/i.test(e));
+    const fxTxt = Object.keys(fxCache).map(c => "1 " + c + " = " + fxCache[c].toLocaleString("it-IT", { maximumFractionDigits: 4 }) + " €").join(" · ");
+    status.className = "note" + (fail ? " warn" : "");
+    if (fail && blocked) {
+      status.innerHTML = "<b>Impossibile raggiungere i servizi prezzi.</b> Il browser sta bloccando tutte le richieste " +
+        "(i proxy CORS pubblici sono lenti/offline o bloccati dalla tua rete). Soluzione consigliata:<br>" +
+        "&bull; <b>Proxy locale</b>: nella cartella apri un terminale, esegui <code>python price_proxy.py</code>, " +
+        "poi in <i>Impostazioni avanzate</i> premi «Usa proxy locale» e riprova. È veloce e non dipende da servizi esterni.<br>" +
+        "&bull; In alternativa riprova tra qualche minuto o inserisci il valore del portafoglio a mano.";
+    } else {
+      status.innerHTML = "Aggiornati <b>" + ok + "</b> ETF" +
+        (fxTxt ? ". Cambi applicati: " + fxTxt : "") +
+        (fail ? ". <b>" + fail + "</b> non riusciti: " + escapeHtml(errs.join(" · ")) +
+          " (verifica ISIN/ticker o riprova cambiando proxy nelle impostazioni avanzate)." : ".");
+    }
+  }
+
+  $("btnAddHold").addEventListener("click", () => {
+    state.holdings.push({ isin: "", name: "", symbol: "", qty: "", price: 0, currency: "" });
+    save(); renderHoldings();
+  });
+
+  $("btnAddManual").addEventListener("click", () => {
+    state.holdings.push({ manual: true, isin: "", name: "", symbol: "", qty: "", price: 0, currency: "EUR", srcPrice: 0, srcCurrency: "", target: "" });
+    save(); renderHoldings();
+  });
+
+  // ---- Importa posizioni da Scalable (JSON) ----
+  function pick(obj, keys) {
+    for (const k of keys) {
+      if (obj[k] !== undefined && obj[k] !== null && obj[k] !== "") return obj[k];
+      // ricerca case-insensitive
+      const found = Object.keys(obj).find((kk) => kk.toLowerCase() === k.toLowerCase());
+      if (found && obj[found] !== undefined && obj[found] !== null && obj[found] !== "") return obj[found];
+    }
+    return undefined;
+  }
+
+  function numOrEmpty(v) {
+    if (v === undefined || v === null || v === "") return "";
+    if (typeof v === "number") return isNaN(v) ? "" : v;
+    if (typeof v === "object") return numOrEmpty(pick(v, ["amount", "value", "valore"]));
+    let s = String(v).trim().replace(/[^0-9.,-]/g, "");
+    // Se ci sono sia punti che virgole, l'ultimo simbolo è il separatore decimale.
+    if (s.indexOf(".") !== -1 && s.indexOf(",") !== -1) {
+      if (s.lastIndexOf(",") > s.lastIndexOf(".")) s = s.replace(/\./g, "").replace(",", ".");
+      else s = s.replace(/,/g, "");
+    } else if (s.indexOf(",") !== -1) {
+      s = s.replace(",", ".");
+    }
+    const n = parseFloat(s);
+    return isNaN(n) ? "" : n;
+  }
+
+  function findPositionsArray(data) {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === "object") {
+      const keys = ["positions", "holdings", "securities", "instruments", "items", "data", "portfolio", "assets"];
+      for (const k of keys) {
+        const found = Object.keys(data).find((kk) => kk.toLowerCase() === k);
+        if (found) {
+          const v = data[found];
+          if (Array.isArray(v)) return v;
+          if (v && typeof v === "object") {
+            const inner = findPositionsArray(v);
+            if (inner) return inner;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function mapPosition(p) {
+    if (!p || typeof p !== "object") return null;
+    const isin = pick(p, ["isin", "ISIN", "instrumentId", "id"]);
+    const name = pick(p, ["name", "nome", "instrumentName", "description", "descrizione", "title", "titolo", "shortName", "displayName"]);
+    const symbol = pick(p, ["symbol", "simbolo", "ticker", "wkn", "tickerSymbol"]);
+    const qty = numOrEmpty(pick(p, ["quantity", "quantita", "quantità", "qty", "units", "shares", "amount", "numberOfShares", "size"]));
+    const buyPrice = numOrEmpty(pick(p, ["averagePrice", "avgPrice", "buyPrice", "averageBuyPrice", "averageEntryPrice", "purchasePrice", "costPrice", "avgBuyIn", "buyIn", "averageCost", "prezzo_medio_carico", "prezzo_medio_di_carico", "prezzo_medio", "prezzo_carico", "prezzoMedioCarico", "pmc", "prezzo_medio_acquisto"]));
+    const price = numOrEmpty(pick(p, ["currentPrice", "price", "prezzo_attuale", "prezzoAttuale", "prezzo", "quotazione", "lastPrice", "marketPrice", "quote", "close", "last"]));
+    const currency = pick(p, ["currency", "valuta", "ccy", "currencyCode"]);
+    if (!isin && !name && !symbol && qty === "" && price === "") return null;
+    return {
+      isin: isin ? String(isin).toUpperCase().trim() : "",
+      name: name ? String(name).trim() : "",
+      symbol: symbol ? String(symbol).toUpperCase().trim() : "",
+      qty: qty,
+      buyPrice: buyPrice,
+      price: price === "" ? 0 : price,
+      currency: currency ? String(currency).toUpperCase().trim() : ""
+    };
+  }
+
+  function scalableMsg(text, cls) {
+    const el = $("scalableMsg");
+    el.className = cls || "hint";
+    el.textContent = text;
+  }
+
+  function openScalableModal() {
+    $("scalableJson").value = "";
+    scalableMsg("");
+    $("scalableModal").style.display = "flex";
+    setTimeout(() => $("scalableJson").focus(), 50);
+  }
+  function closeScalableModal() { $("scalableModal").style.display = "none"; }
+
+  $("btnImportScalable").addEventListener("click", openScalableModal);
+  $("btnScalableCancel").addEventListener("click", closeScalableModal);
+  $("scalableModal").addEventListener("click", (e) => { if (e.target === $("scalableModal")) closeScalableModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("scalableModal").style.display === "flex") closeScalableModal(); });
+
+  $("btnScalableConfirm").addEventListener("click", () => {
+    const raw = $("scalableJson").value.trim();
+    if (!raw) { scalableMsg("Incolla prima il JSON delle posizioni.", "note"); return; }
+    let data;
+    try { data = JSON.parse(raw); }
+    catch (err) { scalableMsg("JSON non valido: " + err.message, "note"); return; }
+    const arr = findPositionsArray(data);
+    if (!arr || !arr.length) { scalableMsg("Nessuna posizione trovata nel JSON (attesa una lista di posizioni).", "note"); return; }
+    const mapped = arr.map(mapPosition).filter(Boolean);
+    if (!mapped.length) { scalableMsg("Impossibile riconoscere i campi delle posizioni.", "note"); return; }
+
+    const replace = $("scalableReplace").checked;
+    if (replace) {
+      if (!confirm("Sostituire le posizioni ETF esistenti con quelle importate?\n(Gli asset manuali vengono mantenuti. Viene salvato un backup automatico.)")) return;
+      backupState();
+      // Mantieni gli asset manuali, sostituisci solo gli ETF automatici.
+      const manuals = state.holdings.filter((h) => h.manual);
+      state.holdings = mapped.concat(manuals);
+    } else {
+      state.holdings = state.holdings.concat(mapped);
+    }
+    save(); renderHoldings(); renderAllocation();
+    scalableMsg("Importate " + mapped.length + " posizioni. Premi «Aggiorna prezzi» per i valori live.", "note");
+    setTimeout(closeScalableModal, 1200);
+  });
+
+  // ---- Importa storico mensile da Scalable (JSON) ----
+  const MONTH_NAMES = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
+  function monthLabel(v) {
+    if (v === undefined || v === null) return "";
+    const s = String(v).trim();
+    // formati tipo 2025-01, 2025/01, 2025-01-31, ISO date
+    const m = s.match(/^(\d{4})[-/](\d{1,2})(?:[-/]\d{1,2})?/);
+    if (m) {
+      const mi = parseInt(m[2], 10) - 1;
+      if (mi >= 0 && mi < 12) return MONTH_NAMES[mi] + " " + m[1];
+    }
+    return s;
+  }
+
+  function findMonthsArray(data) {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === "object") {
+      const keys = ["months", "storico", "history", "timeline", "serie", "series", "data", "values", "monthly", "mesi"];
+      for (const k of keys) {
+        const found = Object.keys(data).find((kk) => kk.toLowerCase() === k);
+        if (found) {
+          const v = data[found];
+          if (Array.isArray(v)) return v;
+          if (v && typeof v === "object") {
+            const inner = findMonthsArray(v);
+            if (inner) return inner;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function mapMonth(m) {
+    if (!m || typeof m !== "object") return null;
+    const label = monthLabel(pick(m, ["label", "mese", "month", "periodo", "period", "date", "data"]));
+    const value = numOrEmpty(pick(m, ["value", "valore", "portfolioValue", "portfolio_value", "totalValue", "total_value", "patrimonio", "nav", "marketValue", "controvalore", "valoreFineMese", "valore_fine_mese"]));
+    let deposit = numOrEmpty(pick(m, ["deposit", "versamento", "versato", "contribution", "contributed", "netDeposit", "net_deposit", "apporto", "cashflow", "flusso", "versamentoNetto"]));
+    if (deposit === "") deposit = 0;
+    if (value === "") return null;
+    // Modello app: observed = valore pre-versamento; l'importo versato è registrato come investito reale.
+    const observed = Math.round((value - deposit) * 100) / 100;
+    return {
+      label: label || "",
+      observed: observed,
+      real: true,
+      rInvest: deposit,
+      rToLiq: 0,
+      rFromLiq: 0,
+      rDeposit: deposit
+    };
+  }
+
+  function historyMsg(text, cls) {
+    const el = $("historyMsg");
+    el.className = cls || "hint";
+    el.textContent = text;
+  }
+  function openHistoryModal() {
+    $("historyJson").value = "";
+    historyMsg("");
+    $("historyModal").style.display = "flex";
+    setTimeout(() => $("historyJson").focus(), 50);
+  }
+  function closeHistoryModal() { $("historyModal").style.display = "none"; }
+
+  $("btnImportHistory").addEventListener("click", openHistoryModal);
+  $("btnHistoryCancel").addEventListener("click", closeHistoryModal);
+  $("historyModal").addEventListener("click", (e) => { if (e.target === $("historyModal")) closeHistoryModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("historyModal").style.display === "flex") closeHistoryModal(); });
+
+  $("btnHistoryConfirm").addEventListener("click", () => {
+    const raw = $("historyJson").value.trim();
+    if (!raw) { historyMsg("Incolla prima il JSON dello storico.", "note"); return; }
+    let data;
+    try { data = JSON.parse(raw); }
+    catch (err) { historyMsg("JSON non valido: " + err.message, "note"); return; }
+    const arr = findMonthsArray(data);
+    if (!arr || !arr.length) { historyMsg("Nessun mese trovato nel JSON (attesa una lista di mesi).", "note"); return; }
+    const mapped = arr.map(mapMonth).filter(Boolean);
+    if (!mapped.length) { historyMsg("Impossibile riconoscere i campi dei mesi (serve almeno il valore).", "note"); return; }
+    mapped.forEach((mo, idx) => { if (!mo.label) mo.label = "Mese " + (idx + 1); });
+
+    if ($("historyReplace").checked) {
+      if (!confirm("Sostituire tutto lo storico mensile esistente con quello importato?\n(Viene salvato un backup automatico.)")) return;
+      backupState();
+      state.months = mapped;
+    } else {
+      state.months = state.months.concat(mapped);
+    }
+
+    editIdx = null;
+    save(); render(); updatePreview();
+    historyMsg("Importati " + mapped.length + " mesi.", "note");
+    setTimeout(closeHistoryModal, 1200);
+  });
+
+  // ---- Ripristina l'ultimo backup automatico ----
+  $("btnRestoreBackup").addEventListener("click", () => {
+    const snap = localStorage.getItem(LS_KEY + "_backup");
+    if (!snap) { alert("Nessun backup disponibile. Viene creato automaticamente prima di ogni sostituzione."); return; }
+    const at = localStorage.getItem(LS_KEY + "_backup_at");
+    const when = at ? new Date(at).toLocaleString("it-IT") : "data sconosciuta";
+    if (!confirm("Ripristinare il backup del " + when + "?\nLo stato attuale verrà sostituito con quello salvato.")) return;
+    try {
+      const restored = JSON.parse(snap);
+      // Scambia: salva lo stato corrente come nuovo backup, poi ripristina.
+      const current = localStorage.getItem(LS_KEY);
+      state = Object.assign({ cfg: {}, crash: [], months: [], holdings: [] }, restored);
+      save();
+      if (current) { localStorage.setItem(LS_KEY + "_backup", current); localStorage.setItem(LS_KEY + "_backup_at", new Date().toISOString()); }
+      editIdx = null;
+      syncInputsFromState(); render(); renderHoldings(); renderAllocation(); updatePreview();
+      if (typeof setLineMode === "function") setLineMode(state.lineMode || "profit");
+      alert("Backup ripristinato.");
+    } catch (e) { alert("Backup non valido, impossibile ripristinare."); }
+  });
+
+  // ---- Sincronizzazione cloud (Firebase + accesso Google) ----
+  const FB_APP_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  const FB_STORE_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  const FB_AUTH_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  let fbMods = null;
+
+  function fbStatus(text, cls) {
+    const el = $("fbStatus");
+    if (!el) return;
+    el.className = "note" + (cls ? " " + cls : "");
+    el.textContent = text;
+  }
+
+  async function loadFirebase() {
+    if (fbMods) return fbMods;
+    const appMod = await import(FB_APP_URL);
+    const storeMod = await import(FB_STORE_URL);
+    const authMod = await import(FB_AUTH_URL);
+    fbMods = { appMod, storeMod, authMod };
+    return fbMods;
+  }
+
+  function scheduleCloudUpload() {
+    if (!cloud.connected || cloud.applyingRemote) return;
+    if (cloud.uploadTimer) clearTimeout(cloud.uploadTimer);
+    cloud.uploadTimer = setTimeout(uploadState, 800);
+  }
+
+  async function uploadState() {
+    if (!cloud.connected || !cloud.docRef) return;
+    try {
+      const { setDoc } = fbMods.storeMod;
+      await setDoc(cloud.docRef, {
+        state: JSON.stringify(state),
+        updatedAt: lastLocalChange,
+        client: CLIENT_ID,
+        savedAt: Date.now()
+      });
+      fbStatus("Sincronizzato ✓ (" + new Date().toLocaleTimeString("it-IT") + ")", "");
+    } catch (e) {
+      fbStatus("Errore invio dati: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+
+  function applyRemoteState(remote) {
+    try {
+      const parsed = JSON.parse(remote.state);
+      cloud.applyingRemote = true;
+      state = Object.assign({ cfg: {}, crash: [], months: [], holdings: [] }, parsed);
+      lastLocalChange = remote.updatedAt || Date.now();
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      localStorage.setItem(LS_KEY + "_updatedAt", String(lastLocalChange));
+      editIdx = null;
+      syncInputsFromState(); render(); renderHoldings(); renderAllocation(); updatePreview();
+      if (typeof setLineMode === "function") setLineMode(state.lineMode || "profit");
+      cloud.applyingRemote = false;
+      fbStatus("Aggiornato dal cloud ✓ (" + new Date().toLocaleTimeString("it-IT") + ")", "");
+    } catch (e) {
+      cloud.applyingRemote = false;
+      fbStatus("Dati remoti non validi.", "bad");
+    }
+  }
+
+  function fbSetUser(user) {
+    const el = $("fbUser");
+    if (!el) return;
+    if (user) el.innerHTML = "Connesso come <b>" + escapeHtml(user.email || user.displayName || user.uid) + "</b>";
+    else el.textContent = "Non hai effettuato l'accesso.";
+  }
+
+  async function ensureFirebaseInit() {
+    const rawCfg = ($("fbConfig").value || localStorage.getItem(CLOUD_CFG_KEY) || EMBEDDED_FB_CONFIG || "").trim();
+    if (!rawCfg) { fbStatus("Inserisci prima la configurazione Firebase.", "warn"); return false; }
+    let cfg;
+    try { cfg = JSON.parse(rawCfg); }
+    catch (e) { fbStatus("Configurazione Firebase non è JSON valido.", "bad"); return false; }
+    if (!cloud.app) {
+      const { appMod, storeMod, authMod } = await loadFirebase();
+      cloud.app = appMod.initializeApp(cfg, "pac-app");
+      cloud.db = storeMod.getFirestore(cloud.app);
+      cloud.auth = authMod.getAuth(cloud.app);
+      localStorage.setItem(CLOUD_CFG_KEY, rawCfg);
+      authMod.onAuthStateChanged(cloud.auth, (user) => handleAuthChange(user));
+    }
+    return true;
+  }
+
+  function handleAuthChange(user) {
+    cloud.user = user;
+    if (user) {
+      fbSetUser(user);
+      startSync(user.uid);
+    } else {
+      fbSetUser(null);
+      stopSync(true);
+      fbStatus("Non connesso.", "");
+    }
+  }
+
+  function startSync(uid) {
+    const { doc, onSnapshot } = fbMods.storeMod;
+    stopSync(true);
+    cloud.docRef = doc(cloud.db, "pacStates", uid);
+    cloud.connected = true;
+    cloud.unsub = onSnapshot(cloud.docRef, (snap) => {
+      if (!snap.exists()) {
+        uploadState();
+        fbStatus("Connesso. Nessun dato in cloud: caricato lo stato locale.", "");
+        return;
+      }
+      const data = snap.data();
+      if (data.client === CLIENT_ID) return; // eco della nostra scrittura
+      if ((data.updatedAt || 0) > lastLocalChange) applyRemoteState(data);
+      else if ((data.updatedAt || 0) < lastLocalChange) uploadState();
+    }, (err) => {
+      fbStatus("Errore sincronizzazione: " + (err && err.message ? err.message : err), "bad");
+    });
+    fbStatus("Sincronizzazione attiva ✓ (" + new Date().toLocaleTimeString("it-IT") + ")", "");
+  }
+
+  function stopSync() {
+    if (cloud.unsub) { try { cloud.unsub(); } catch (e) {} }
+    cloud.unsub = null;
+    cloud.connected = false;
+    cloud.docRef = null;
+    if (cloud.uploadTimer) { clearTimeout(cloud.uploadTimer); cloud.uploadTimer = null; }
+  }
+
+  async function googleLogin() {
+    fbStatus("Accesso in corso…", "");
+    if (!(await ensureFirebaseInit())) return;
+    try {
+      const { GoogleAuthProvider, signInWithPopup, signInWithRedirect } = fbMods.authMod;
+      const provider = new GoogleAuthProvider();
+      try {
+        await signInWithPopup(cloud.auth, provider);
+      } catch (popupErr) {
+        const info = String((popupErr && (popupErr.code || popupErr.message)) || "");
+        // popup non supportato/bloccato (tipico su PWA installata): ripiego sul redirect
+        if (/popup|blocked|cancelled|operation-not-supported|closed/i.test(info)) {
+          await signInWithRedirect(cloud.auth, provider);
+        } else throw popupErr;
+      }
+    } catch (e) {
+      fbStatus("Accesso fallito: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+
+  async function googleLogout() {
+    try { if (cloud.auth) { const { signOut } = fbMods.authMod; await signOut(cloud.auth); } } catch (e) {}
+    stopSync();
+    fbSetUser(null);
+    fbStatus("Uscito. I dati restano salvati in locale su questo dispositivo.", "");
+  }
+
+  if ($("btnGoogleLogin")) {
+    $("btnGoogleLogin").addEventListener("click", googleLogin);
+    $("btnGoogleLogout").addEventListener("click", googleLogout);
+
+    // Precompila la config (salvata o incorporata) e ripristina la sessione Google persistente.
+    const savedCfg = localStorage.getItem(CLOUD_CFG_KEY) || EMBEDDED_FB_CONFIG;
+    if (savedCfg) {
+      $("fbConfig").value = savedCfg;
+      ensureFirebaseInit().then(async (ok) => {
+        if (!ok) return;
+        try { await fbMods.authMod.getRedirectResult(cloud.auth); } catch (e) {}
+      });
+    }
+  }
+
+  $("holdBody").addEventListener("input", (e) => {
+    const el = e.target; const i = parseInt(el.dataset.i, 10);
+    if (isNaN(i) || !state.holdings[i]) return;
+    if (el.classList.contains("h-isin")) state.holdings[i].isin = el.value;
+    else if (el.classList.contains("h-sym")) state.holdings[i].symbol = el.value;
+    else if (el.classList.contains("h-qty")) state.holdings[i].qty = el.value;
+    else if (el.classList.contains("h-name")) state.holdings[i].name = el.value;
+    else if (el.classList.contains("h-price")) {
+      state.holdings[i].price = num(el.value);
+      const cell = el.closest("tr").children[7];
+      if (cell) cell.innerHTML = plCellHtml(state.holdings[i]);
+    }
+    else if (el.classList.contains("h-buy")) {
+      state.holdings[i].buyPrice = el.value === "" ? "" : num(el.value);
+      const cell = el.closest("tr").children[7];
+      if (cell) cell.innerHTML = plCellHtml(state.holdings[i]);
+      save();
+      return;
+    }
+    save(); updateHoldTotal();
+  });
+
+  $("holdBody").addEventListener("click", (e) => {
+    const btn = e.target.closest(".h-del");
+    if (!btn) return;
+    state.holdings.splice(parseInt(btn.dataset.i, 10), 1);
+    save(); renderHoldings();
+  });
+
+  $("allocBody").addEventListener("input", (e) => {
+    const el = e.target;
+    if (!el.classList.contains("a-tgt")) return;
+    const i = parseInt(el.dataset.i, 10);
+    if (isNaN(i) || !state.holdings[i]) return;
+    state.holdings[i].target = el.value === "" ? "" : num(el.value);
+    save(); updateAllocNumbers();
+  });
+
+  $("allocAmount").addEventListener("input", () => { state.allocAmount = $("allocAmount").value; save(); updateAllocNumbers(); });
+
+  $("btnFetch").addEventListener("click", updatePrices);
+
+  $("btnUseTotal").addEventListener("click", () => {
+    const { total } = holdingsTotal();
+    if (!total) { alert("Nessun valore calcolato. Aggiungi gli ETF e premi «Aggiorna prezzi»."); return; }
+    $("mValue").value = Math.round(total * 100) / 100;
+    updatePreview();
+    $("mValue").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  $("proxyUrl").addEventListener("input", () => { state.proxy = $("proxyUrl").value.trim(); save(); });
+
+  $("btnLocalProxy").addEventListener("click", () => {
+    state.proxy = "http://127.0.0.1:8787/fetch?url=";
+    $("proxyUrl").value = state.proxy;
+    save();
+    $("holdStatus").className = "note";
+    $("holdStatus").innerHTML = "Proxy locale impostato. Assicurati che <code>python price_proxy.py</code> sia in esecuzione, poi premi «Aggiorna prezzi».";
+  });
+
+  $("btnClearProxy").addEventListener("click", () => {
+    state.proxy = "";
+    $("proxyUrl").value = "";
+    save();
+    $("holdStatus").className = "note";
+    $("holdStatus").textContent = "Ripristinati i proxy predefiniti.";
+  });
+
+  // ---- Grafici ----
+  const PALETTE = ["#38bdf8","#818cf8","#34d399","#fbbf24","#f87171","#f472b6","#22d3ee","#a3e635","#c084fc","#fb923c"];
+  let lastLineSeries = null;
+  let lastPlot = null;
+  let currentChartCfg = null; // { cfg, drawFn } del grafico attivo
+  let activeGeom = null;      // { hit(mx,my) } per l'hover
+  let benchData = null;       // { symbol, norm:[], months } dati benchmark caricati
+
+  function hexToRgba(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+  }
+
+  function prepCanvas(canvas, cssW, cssH) {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+    return ctx;
+  }
+
+  let pieSlices = null; // {items, cx, cy, r, total} per l'interattività
+  let pieHover = null;  // indice fetta sotto il mouse
+
+  function renderPie() {
+    const canvas = $("pieCanvas");
+    if (!canvas) return;
+    const items = state.holdings
+      .map((h, i) => ({ label: h.name || h.symbol || h.isin || ("ETF " + (i + 1)), value: num(h.qty) * num(h.price), color: PALETTE[i % PALETTE.length] }))
+      .filter(it => it.value > 0)
+      .sort((a, b) => b.value - a.value); // dal più grande al più piccolo
+    const legend = $("pieLegend");
+    const hint = $("pieHint");
+    const size = 280;
+    const ctx = prepCanvas(canvas, size, size);
+    if (!items.length) {
+      pieSlices = null; pieHover = null;
+      legend.innerHTML = "";
+      hint.style.display = "";
+      ctx.strokeStyle = "rgba(148,163,184,.3)";
+      ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 6, 0, Math.PI * 2); ctx.stroke();
+      return;
+    }
+    hint.style.display = "none";
+    const total = items.reduce((a, it) => a + it.value, 0);
+    const cx = size / 2, cy = size / 2, r = size / 2 - 6;
+    // calcola gli angoli e salvali per hover/legenda
+    let ang = -Math.PI / 2;
+    items.forEach(it => {
+      it.a0 = ang;
+      it.slice = it.value / total * Math.PI * 2;
+      it.a1 = ang + it.slice;
+      ang = it.a1;
+    });
+    pieSlices = { items, cx, cy, r, total };
+    drawPie();
+    // legenda (già ordinata dal più grande al più piccolo)
+    legend.innerHTML = items.map((it, idx) => {
+      const pct = (it.value / total * 100).toFixed(1).replace(".", ",");
+      return '<div class="pie-leg" data-slice="' + idx + '" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;padding:2px 4px;border-radius:6px;cursor:default;">' +
+        '<span style="width:12px;height:12px;border-radius:3px;background:' + it.color + ';flex:0 0 auto;"></span>' +
+        '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(it.label) + '</span>' +
+        '<b>' + pct + '%</b>' +
+        '<span class="muted" style="min-width:70px;text-align:right;">' + eur(it.value) + '</span>' +
+        '</div>';
+    }).join("");
+  }
+
+  // Disegna la torta (o donut) evidenziando l'eventuale fetta sotto il mouse.
+  function drawPie() {
+    const canvas = $("pieCanvas");
+    if (!canvas || !pieSlices) return;
+    const { items, cx, cy, r, total } = pieSlices;
+    const size = 280;
+    const ctx = prepCanvas(canvas, size, size);
+    items.forEach((it, i) => {
+      const hovered = i === pieHover;
+      const rr = hovered ? r + 4 : r;
+      // leggero spostamento verso l'esterno della fetta attiva
+      const mid = (it.a0 + it.a1) / 2;
+      const ox = hovered ? Math.cos(mid) * 5 : 0;
+      const oy = hovered ? Math.sin(mid) * 5 : 0;
+      ctx.beginPath();
+      ctx.moveTo(cx + ox, cy + oy);
+      ctx.arc(cx + ox, cy + oy, rr, it.a0, it.a1);
+      ctx.closePath();
+      ctx.fillStyle = it.color;
+      ctx.globalAlpha = (pieHover == null || hovered) ? 1 : 0.45;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 2; ctx.stroke();
+    });
+    // buco centrale (donut)
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2); ctx.fillStyle = "#1e293b"; ctx.fill();
+    ctx.textAlign = "center";
+    if (pieHover != null && items[pieHover]) {
+      const it = items[pieHover];
+      const pct = (it.value / total * 100).toFixed(1).replace(".", ",");
+      ctx.fillStyle = it.color; ctx.font = "600 12px system-ui";
+      const name = it.label.length > 16 ? it.label.slice(0, 15) + "…" : it.label;
+      ctx.fillText(name, cx, cy - 8);
+      ctx.fillStyle = "#e2e8f0"; ctx.font = "600 15px system-ui";
+      ctx.fillText(eur(it.value), cx, cy + 10);
+      ctx.fillStyle = "#94a3b8"; ctx.font = "11px system-ui";
+      ctx.fillText(pct + "%", cx, cy + 26);
+    } else {
+      ctx.fillStyle = "#94a3b8"; ctx.font = "11px system-ui";
+      ctx.fillText("Totale", cx, cy - 8);
+      ctx.fillStyle = "#e2e8f0"; ctx.font = "600 15px system-ui";
+      ctx.fillText(eur(total), cx, cy + 10);
+    }
+  }
+
+  // ===== Motore grafici (linee, barre, aree impilate) =====
+  function chartCtx() {
+    const canvas = $("lineCanvas");
+    if (!canvas) return null;
+    const cssW = canvas.clientWidth || 600;
+    const cssH = canvas.clientHeight || 280;
+    return { canvas, ctx: prepCanvas(canvas, cssW, cssH), cssW, cssH };
+  }
+  function chartEmpty(msg) {
+    const c = chartCtx(); if (!c) return;
+    c.ctx.fillStyle = "#94a3b8"; c.ctx.textAlign = "center"; c.ctx.font = "13px system-ui";
+    c.ctx.fillText(msg || "Nessun dato da mostrare.", c.cssW / 2, c.cssH / 2);
+  }
+  function fmtEur(v) { return eur(Math.round(v)); }
+  function fmtPct(v) { return (v >= 0 ? "+" : "") + v.toFixed(1).replace(".", ",") + "%"; }
+  function legendHtml(items) {
+    return items.map(it => "<span style='display:inline-flex;align-items:center;gap:6px;margin-right:16px;'>" +
+      "<span style='width:12px;height:12px;border-radius:3px;background:" + it[0] + ";display:inline-block;'></span>" +
+      escapeHtml(it[1]) + "</span>").join("");
+  }
+  function tooltipBox(ctx, cssW, cssH, pad, hx, hy, rows, col) {
+    const lh = 16;
+    let w = 0;
+    rows.forEach((r, i) => { ctx.font = i === 0 ? "12px system-ui" : "600 12px system-ui"; w = Math.max(w, ctx.measureText(r).width); });
+    w += 16; const h = 8 + rows.length * lh;
+    let bx = hx + 10; if (bx + w > cssW) bx = hx - 10 - w; if (bx < 4) bx = 4;
+    let by = hy - h - 8; if (by < pad.t) by = hy + 8; if (by + h > cssH) by = cssH - h - 4;
+    ctx.fillStyle = "rgba(15,23,42,.95)"; ctx.strokeStyle = col; ctx.lineWidth = 1;
+    ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, h, 6); else ctx.rect(bx, by, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.textAlign = "left";
+    rows.forEach((r, i) => { ctx.font = i === 0 ? "12px system-ui" : "600 12px system-ui"; ctx.fillStyle = i === 0 ? "#94a3b8" : "#e2e8f0"; ctx.fillText(r, bx + 8, by + 14 + i * lh); });
+  }
+
+  // Grafico a linee (una o più serie categoriali con etichette per mese).
+  function drawLineChart(cfg, hoverIdx) {
+    const c = chartCtx(); if (!c) return;
+    const { ctx, cssW, cssH } = c;
+    const lines = cfg.lines.filter(l => l.pts && l.pts.length >= 2);
+    if (!lines.length) { chartEmpty(cfg.empty); activeGeom = null; return; }
+    const n = lines[0].pts.length;
+    const labels = lines[0].pts.map(p => p.label);
+    const pad = { l: 64, r: 14, t: 14, b: 26 };
+    let minY = Infinity, maxY = -Infinity;
+    lines.forEach(l => l.pts.forEach(p => { if (p.v < minY) minY = p.v; if (p.v > maxY) maxY = p.v; }));
+    if (cfg.zero) { if (minY > 0) minY = 0; if (maxY < 0) maxY = 0; }
+    if (minY === maxY) { minY -= 1; maxY += 1; }
+    const px = i => pad.l + (n === 1 ? 0 : i / (n - 1)) * (cssW - pad.l - pad.r);
+    const py = v => cssH - pad.b - (v - minY) / (maxY - minY) * (cssH - pad.t - pad.b);
+    ctx.font = "11px system-ui";
+    for (let i = 0; i <= 4; i++) {
+      const v = minY + (maxY - minY) * i / 4, y = py(v);
+      ctx.strokeStyle = "rgba(148,163,184,.15)"; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(cssW - pad.r, y); ctx.stroke();
+      ctx.fillStyle = "#94a3b8"; ctx.textAlign = "right"; ctx.fillText(cfg.fmt(v), pad.l - 6, y + 3);
+    }
+    if (minY < 0 && maxY > 0) {
+      const y0 = py(0); ctx.strokeStyle = "rgba(148,163,184,.45)"; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(pad.l, y0); ctx.lineTo(cssW - pad.r, y0); ctx.stroke(); ctx.setLineDash([]);
+    }
+    lines.forEach(l => {
+      ctx.beginPath(); ctx.moveTo(px(0), py(l.pts[0].v));
+      for (let i = 1; i < n; i++) ctx.lineTo(px(i), py(l.pts[i].v));
+      if (l.dash) ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = l.color; ctx.lineWidth = l.width || 2; ctx.stroke();
+      ctx.setLineDash([]);
+      if (cfg.area && lines.length === 1) {
+        ctx.lineTo(px(n - 1), cssH - pad.b); ctx.lineTo(px(0), cssH - pad.b); ctx.closePath();
+        ctx.fillStyle = hexToRgba(l.color, 0.12); ctx.fill();
+      }
+      if (!l.noDots && n <= 60) for (let i = 0; i < n; i++) { ctx.beginPath(); ctx.arc(px(i), py(l.pts[i].v), 3, 0, Math.PI * 2); ctx.fillStyle = l.color; ctx.fill(); }
+    });
+    ctx.fillStyle = "#94a3b8"; ctx.textAlign = "center";
+    ctx.fillText(labels[0], px(0), cssH - 8);
+    ctx.fillText(labels[n - 1], px(n - 1), cssH - 8);
+    if (hoverIdx != null && hoverIdx >= 0 && hoverIdx < n) {
+      const hx = px(hoverIdx);
+      ctx.strokeStyle = "rgba(148,163,184,.5)"; ctx.beginPath(); ctx.moveTo(hx, pad.t); ctx.lineTo(hx, cssH - pad.b); ctx.stroke();
+      lines.forEach(l => { ctx.beginPath(); ctx.arc(hx, py(l.pts[hoverIdx].v), 4, 0, Math.PI * 2); ctx.fillStyle = l.color; ctx.fill(); ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 2; ctx.stroke(); });
+      const rows = [labels[hoverIdx]].concat(lines.map(l => (lines.length > 1 ? l.label + ": " : "") + cfg.fmt(l.pts[hoverIdx].v)));
+      tooltipBox(ctx, cssW, cssH, pad, hx, py(lines[0].pts[hoverIdx].v), rows, lines[0].color);
+    }
+    activeGeom = { hit: (mx) => { let best = 0, bd = Infinity; for (let i = 0; i < n; i++) { const d = Math.abs(px(i) - mx); if (d < bd) { bd = d; best = i; } } return best; } };
+  }
+
+  // Grafico a barre verticali (una barra per mese).
+  function drawBarChart(cfg, hoverIdx) {
+    const c = chartCtx(); if (!c) return;
+    const { ctx, cssW, cssH } = c;
+    const bars = cfg.bars;
+    if (!bars || !bars.length) { chartEmpty(cfg.empty); activeGeom = null; return; }
+    const pad = { l: 64, r: 14, t: 14, b: 40 };
+    let minY = Math.min(0, ...bars.map(b => b.v)), maxY = Math.max(0, ...bars.map(b => b.v));
+    if (minY === maxY) maxY += 1;
+    const n = bars.length, plotW = cssW - pad.l - pad.r, step = plotW / n, bw = Math.min(48, step * 0.6);
+    const py = v => cssH - pad.b - (v - minY) / (maxY - minY) * (cssH - pad.t - pad.b);
+    const cx = i => pad.l + step * (i + 0.5);
+    ctx.font = "11px system-ui";
+    for (let i = 0; i <= 4; i++) {
+      const v = minY + (maxY - minY) * i / 4, y = py(v);
+      ctx.strokeStyle = "rgba(148,163,184,.15)"; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(cssW - pad.r, y); ctx.stroke();
+      ctx.fillStyle = "#94a3b8"; ctx.textAlign = "right"; ctx.fillText(cfg.fmt(v), pad.l - 6, y + 3);
+    }
+    const y0 = py(0);
+    bars.forEach((b, i) => {
+      const x = cx(i) - bw / 2, yv = py(b.v);
+      ctx.fillStyle = hoverIdx === i ? b.color : hexToRgba(b.color, 0.8);
+      ctx.fillRect(x, Math.min(yv, y0), bw, Math.max(1, Math.abs(yv - y0)));
+    });
+    ctx.fillStyle = "#94a3b8"; ctx.textAlign = "center"; ctx.font = "10px system-ui";
+    const every = n <= 12 ? 1 : Math.ceil(n / 12);
+    bars.forEach((b, i) => { if (i % every === 0) { ctx.save(); ctx.translate(cx(i), cssH - pad.b + 12); ctx.rotate(-Math.PI / 6); ctx.fillText(b.label, 0, 0); ctx.restore(); } });
+    if (hoverIdx != null && bars[hoverIdx]) { const b = bars[hoverIdx]; const rows = [b.label, cfg.fmt(b.v)]; if (b.sub) rows.push(b.sub); tooltipBox(ctx, cssW, cssH, pad, cx(hoverIdx), py(b.v), rows, b.color); }
+    activeGeom = { hit: (mx) => { const i = Math.floor((mx - pad.l) / step); return (i >= 0 && i < n) ? i : null; } };
+  }
+
+  // Grafico a barre orizzontali (un asset per riga).
+  function drawHBarChart(cfg, hoverIdx) {
+    const c = chartCtx(); if (!c) return;
+    const { ctx, cssW, cssH } = c;
+    const bars = cfg.bars;
+    if (!bars || !bars.length) { chartEmpty(cfg.empty); activeGeom = null; return; }
+    const pad = { l: 140, r: 70, t: 10, b: 16 };
+    let minX = Math.min(0, ...bars.map(b => b.v)), maxX = Math.max(0, ...bars.map(b => b.v));
+    if (minX === maxX) maxX += 1;
+    const n = bars.length, plotH = cssH - pad.t - pad.b, step = plotH / n, bh = Math.min(30, step * 0.62);
+    const px = v => pad.l + (v - minX) / (maxX - minX) * (cssW - pad.l - pad.r);
+    const cy = i => pad.t + step * (i + 0.5);
+    const x0 = px(0);
+    ctx.strokeStyle = "rgba(148,163,184,.3)"; ctx.beginPath(); ctx.moveTo(x0, pad.t); ctx.lineTo(x0, cssH - pad.b); ctx.stroke();
+    ctx.font = "11px system-ui";
+    bars.forEach((b, i) => {
+      const xv = px(b.v);
+      ctx.fillStyle = hoverIdx === i ? b.color : hexToRgba(b.color, 0.8);
+      ctx.fillRect(Math.min(xv, x0), cy(i) - bh / 2, Math.max(1, Math.abs(xv - x0)), bh);
+      ctx.fillStyle = "#cbd5e1"; ctx.textAlign = "right";
+      const lbl = b.label.length > 18 ? b.label.slice(0, 17) + "…" : b.label;
+      ctx.fillText(lbl, pad.l - 8, cy(i) + 3);
+      ctx.fillStyle = b.v >= 0 ? "#34d399" : "#f87171"; ctx.textAlign = b.v >= 0 ? "left" : "right";
+      ctx.fillText(cfg.fmt(b.v), b.v >= 0 ? xv + 5 : xv - 5, cy(i) + 3);
+    });
+    if (hoverIdx != null && bars[hoverIdx]) {
+      const b = bars[hoverIdx];
+      const rows = [b.full || b.label, cfg.fmt(b.v)];
+      if (b.sub) rows.push(b.sub);
+      tooltipBox(ctx, cssW, cssH, { t: pad.t }, px(b.v), cy(hoverIdx), rows, b.color);
+    }
+    activeGeom = { hit: (mx, my) => { const i = Math.floor((my - pad.t) / step); return (i >= 0 && i < n) ? i : null; } };
+  }
+
+  // Grafico ad aree impilate (composizione del patrimonio nel tempo).
+  function drawStackChart(cfg, hoverIdx) {
+    const c = chartCtx(); if (!c) return;
+    const { ctx, cssW, cssH } = c;
+    const labels = cfg.labels, layers = cfg.layers, n = labels.length;
+    if (n < 2) { chartEmpty(cfg.empty); activeGeom = null; return; }
+    const pad = { l: 64, r: 14, t: 14, b: 26 };
+    const totals = labels.map((_, i) => layers.reduce((s, l) => s + l.vals[i], 0));
+    const maxY = Math.max(...totals, 1);
+    const px = i => pad.l + (n === 1 ? 0 : i / (n - 1)) * (cssW - pad.l - pad.r);
+    const py = v => cssH - pad.b - (v / maxY) * (cssH - pad.t - pad.b);
+    ctx.font = "11px system-ui";
+    for (let i = 0; i <= 4; i++) {
+      const v = maxY * i / 4, y = py(v);
+      ctx.strokeStyle = "rgba(148,163,184,.15)"; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(cssW - pad.r, y); ctx.stroke();
+      ctx.fillStyle = "#94a3b8"; ctx.textAlign = "right"; ctx.fillText(cfg.fmt(v), pad.l - 6, y + 3);
+    }
+    const base = labels.map(() => 0);
+    layers.forEach(layer => {
+      ctx.beginPath();
+      for (let i = 0; i < n; i++) { const yt = py(base[i] + layer.vals[i]); if (i === 0) ctx.moveTo(px(i), yt); else ctx.lineTo(px(i), yt); }
+      for (let i = n - 1; i >= 0; i--) ctx.lineTo(px(i), py(base[i]));
+      ctx.closePath(); ctx.fillStyle = hexToRgba(layer.color, 0.55); ctx.fill();
+      ctx.strokeStyle = layer.color; ctx.lineWidth = 1; ctx.stroke();
+      for (let i = 0; i < n; i++) base[i] += layer.vals[i];
+    });
+    ctx.fillStyle = "#94a3b8"; ctx.textAlign = "center";
+    ctx.fillText(labels[0], px(0), cssH - 8); ctx.fillText(labels[n - 1], px(n - 1), cssH - 8);
+    if (hoverIdx != null && hoverIdx >= 0 && hoverIdx < n) {
+      const hx = px(hoverIdx);
+      ctx.strokeStyle = "rgba(148,163,184,.5)"; ctx.beginPath(); ctx.moveTo(hx, pad.t); ctx.lineTo(hx, cssH - pad.b); ctx.stroke();
+      const rows = [labels[hoverIdx]].concat(layers.map(l => l.name + ": " + cfg.fmt(l.vals[hoverIdx])));
+      rows.push("Totale: " + cfg.fmt(totals[hoverIdx]));
+      tooltipBox(ctx, cssW, cssH, pad, hx, py(totals[hoverIdx]), rows, layers[0].color);
+    }
+    activeGeom = { hit: (mx) => { let best = 0, bd = Infinity; for (let i = 0; i < n; i++) { const d = Math.abs(px(i) - mx); if (d < bd) { bd = d; best = i; } } return best; } };
+  }
+
+  function drawLine(series, hoverIdx) {
+    const canvas = $("lineCanvas");
+    if (!canvas) return;
+    const cssW = canvas.clientWidth || 600;
+    const cssH = 260;
+    const ctx = prepCanvas(canvas, cssW, cssH);
+    if (!series || series.length < 2) {
+      lastPlot = null;
+      ctx.fillStyle = "#94a3b8"; ctx.textAlign = "center"; ctx.font = "13px system-ui";
+      ctx.fillText(series && series._msg ? series._msg : "Nessun dato da mostrare.", cssW / 2, cssH / 2);
+      return;
+    }
+    const cat = series[0].label != null; // serie categoriale (per mese)
+    const pad = { l: 64, r: 14, t: 14, b: 26 };
+    const xs = series.map((p, i) => cat ? i : p.t), ys = series.map(p => p.v);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    let minY = Math.min(...ys), maxY = Math.max(...ys);
+    if (minY === maxY) { minY *= 0.99; maxY *= 1.01; }
+    const px = t => pad.l + (t - minX) / (maxX - minX) * (cssW - pad.l - pad.r);
+    const py = v => cssH - pad.b - (v - minY) / (maxY - minY) * (cssH - pad.t - pad.b);
+    // salva geometria per il tooltip
+    lastPlot = { series, pad, cssW, cssH, minX, maxX, minY, maxY, cat };
+    // griglia + etichette Y
+    ctx.font = "11px system-ui";
+    for (let i = 0; i <= 4; i++) {
+      const v = minY + (maxY - minY) * i / 4;
+      const y = py(v);
+      ctx.strokeStyle = "rgba(148,163,184,.15)";
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(cssW - pad.r, y); ctx.stroke();
+      ctx.fillStyle = "#94a3b8"; ctx.textAlign = "right";
+      ctx.fillText(eur(Math.round(v)), pad.l - 6, y + 3);
+    }
+    // linea dello zero (utile per i profitti)
+    if (minY < 0 && maxY > 0) {
+      const y0 = py(0);
+      ctx.strokeStyle = "rgba(148,163,184,.45)";
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(pad.l, y0); ctx.lineTo(cssW - pad.r, y0); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // linea
+    ctx.beginPath(); ctx.moveTo(px(xs[0]), py(ys[0]));
+    for (let i = 1; i < series.length; i++) ctx.lineTo(px(xs[i]), py(ys[i]));
+    const up = ys[ys.length - 1] >= ys[0];
+    const col = up ? "#34d399" : "#f87171";
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+    // punti (solo per serie categoriale, poche osservazioni)
+    if (cat) {
+      for (let i = 0; i < series.length; i++) {
+        ctx.beginPath(); ctx.arc(px(xs[i]), py(ys[i]), 3, 0, Math.PI * 2);
+        ctx.fillStyle = col; ctx.fill();
+      }
+    }
+    // area
+    ctx.lineTo(px(xs[xs.length - 1]), cssH - pad.b);
+    ctx.lineTo(px(xs[0]), cssH - pad.b);
+    ctx.closePath(); ctx.fillStyle = hexToRgba(col, 0.12); ctx.fill();
+    // etichette X (prima e ultima)
+    ctx.fillStyle = "#94a3b8"; ctx.textAlign = "center";
+    const xlabFirst = cat ? series[0].label : fmtDate(series[0].t);
+    const xlabLast = cat ? series[series.length - 1].label : fmtDate(series[series.length - 1].t);
+    ctx.fillText(xlabFirst, px(minX), cssH - 8);
+    ctx.fillText(xlabLast, px(maxX), cssH - 8);
+    // marcatore + tooltip su hover
+    if (hoverIdx != null && series[hoverIdx]) {
+      const p = series[hoverIdx];
+      const hx = px(cat ? hoverIdx : p.t), hy = py(p.v);
+      ctx.strokeStyle = "rgba(148,163,184,.5)";
+      ctx.beginPath(); ctx.moveTo(hx, pad.t); ctx.lineTo(hx, cssH - pad.b); ctx.stroke();
+      ctx.beginPath(); ctx.arc(hx, hy, 4, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill();
+      ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 2; ctx.stroke();
+      // box
+      const lbl1 = cat ? p.label : fmtDateFull(p.t);
+      const lbl2 = eur(p.v);
+      ctx.font = "12px system-ui";
+      const w = Math.max(ctx.measureText(lbl1).width, ctx.measureText(lbl2).width) + 16;
+      const h = 38;
+      let bx = hx + 10; if (bx + w > cssW) bx = hx - 10 - w;
+      let by = hy - h - 8; if (by < pad.t) by = hy + 8;
+      ctx.fillStyle = "rgba(15,23,42,.95)"; ctx.strokeStyle = col; ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(bx, by, w, h, 6); else ctx.rect(bx, by, w, h);
+      ctx.fill(); ctx.stroke();
+      ctx.textAlign = "left"; ctx.fillStyle = "#94a3b8";
+      ctx.fillText(lbl1, bx + 8, by + 15);
+      ctx.fillStyle = "#e2e8f0"; ctx.font = "600 13px system-ui";
+      ctx.fillText(lbl2, bx + 8, by + 30);
+    }
+  }
+
+  function fmtDate(t) {
+    const span = lastPlot ? (lastPlot.maxX - lastPlot.minX) : 0;
+    if (span > 0 && span <= 86400 * 120) return new Date(t * 1000).toLocaleDateString("it-IT", { day: "2-digit", month: "short" });
+    return new Date(t * 1000).toLocaleDateString("it-IT", { month: "short", year: "2-digit" });
+  }
+
+  function fmtDateFull(t) {
+    return new Date(t * 1000).toLocaleDateString("it-IT", { day: "2-digit", month: "long", year: "numeric" });
+  }
+
+  function currencyDivisor(cur) {
+    if (cur === "GBp" || cur === "GBX") return { div: 100, cur: "GBP" };
+    if (cur === "ZAc") return { div: 100, cur: "ZAR" };
+    if (cur === "ILA") return { div: 100, cur: "ILS" };
+    return { div: 1, cur: cur };
+  }
+
+  async function fetchHistory(symbol, period1, period2, interval) {
+    const path = "/v8/finance/chart/" + encodeURIComponent(symbol) +
+      "?interval=" + interval + "&period1=" + period1 + "&period2=" + period2;
+    let d, lastErr;
+    for (const host of ["query1.finance.yahoo.com", "query2.finance.yahoo.com"]) {
+      try {
+        d = await fetchJson("https://" + host + path);
+        const chart = d && d.chart;
+        if (chart && chart.error) throw new Error(chart.error.description || chart.error.code || "errore Yahoo");
+        const res = chart && chart.result && chart.result[0];
+        if (res && res.timestamp) {
+          const q = res.indicators && res.indicators.quote && res.indicators.quote[0];
+          const closes = (q && q.close) || [];
+          const points = [];
+          for (let i = 0; i < res.timestamp.length; i++) {
+            if (closes[i] != null) points.push({ t: res.timestamp[i], c: closes[i] });
+          }
+          if (points.length) return { currency: (res.meta && res.meta.currency) || "", points };
+          lastErr = new Error("nessun dato di chiusura");
+        } else {
+          lastErr = new Error("risposta senza serie storica");
+        }
+      } catch (err) { lastErr = err; }
+    }
+    throw new Error("storico non disponibile per " + symbol + (lastErr ? " (" + lastErr.message + ")" : ""));
+  }
+
+  // Sceglie una granularità adatta alla durata dell'intervallo (in giorni).
+  function pickInterval(days) {
+    if (days <= 90) return "1d";
+    if (days <= 365 * 1.5) return "1wk";
+    return "1mo";
+  }
+
+  function valueAtOrBefore(points, t) {
+    let val = null;
+    for (const p of points) { if (p.t <= t) val = p.c; else break; }
+    return val;
+  }
+
+  async function buildHistorySeries(period1, period2, interval) {
+    const holds = state.holdings.filter(h => num(h.qty) > 0 && (h.symbol || h.isin));
+    if (!holds.length) throw new Error("nessun ETF con quantità impostata");
+    const per = [];
+    const skipped = [];
+    const fxCache = {};
+    for (const h of holds) {
+      try {
+        if (!h.symbol && h.isin) { const r = await resolveSymbol(h.isin.trim()); h.symbol = r.symbol; if (!h.name) h.name = r.name; }
+        const hist = await fetchHistory(h.symbol.trim(), period1, period2, interval);
+        const cd = currencyDivisor(hist.currency);
+        const points = hist.points.map(p => ({ t: p.t, c: p.c / cd.div }));
+        let fxPoints = null, fbRate = 1;
+        if (cd.cur !== "EUR") {
+          try {
+            const fx = await fetchHistory(cd.cur + "EUR=X", period1, period2, interval);
+            fxPoints = fx.points;
+          } catch (e) {
+            fbRate = await fetchFxRate(cd.cur, fxCache);
+          }
+        }
+        per.push({ qty: num(h.qty), cur: cd.cur, points, fxPoints, fbRate });
+      } catch (err) {
+        skipped.push((h.symbol || h.isin) + ": " + err.message);
+      }
+    }
+    if (!per.length) throw new Error(skipped.join(" · ") || "nessun dato storico");
+    // start = data più recente tra i primi punti di ciascun ETF
+    const start = Math.max.apply(null, per.map(p => p.points.length ? p.points[0].t : Infinity));
+    const allT = new Set();
+    per.forEach(p => p.points.forEach(pt => { if (pt.t >= start) allT.add(pt.t); }));
+    const times = [...allT].sort((a, b) => a - b);
+    const series = [];
+    for (const t of times) {
+      let total = 0, ok = true;
+      for (const h of per) {
+        const price = valueAtOrBefore(h.points, t);
+        if (price == null) { ok = false; break; }
+        let eurPrice = price;
+        if (h.cur !== "EUR") {
+          const rate = h.fxPoints ? (valueAtOrBefore(h.fxPoints, t) || h.fbRate) : h.fbRate;
+          eurPrice = price * rate;
+        }
+        total += h.qty * eurPrice;
+      }
+      if (ok) series.push({ t, v: total });
+    }
+    series._skipped = skipped;
+    return series;
+  }
+
+  const btnLoadHistEl = $("btnLoadHist");
+  if (btnLoadHistEl) btnLoadHistEl.addEventListener("click", async () => {
+    const btn = $("btnLoadHist");
+    const hint = $("lineHint");
+    const fromVal = $("histFrom").value;
+    const toVal = $("histTo").value;
+    if (!fromVal || !toVal) { hint.className = "hint"; hint.textContent = "Seleziona le date «Da» e «A»."; return; }
+    let period1 = Math.floor(new Date(fromVal + "T00:00:00").getTime() / 1000);
+    let period2 = Math.floor(new Date(toVal + "T23:59:59").getTime() / 1000);
+    if (period2 <= period1) { hint.className = "hint"; hint.textContent = "La data «A» deve essere successiva a «Da»."; return; }
+    state.histFrom = fromVal; state.histTo = toVal; save();
+    const days = (period2 - period1) / 86400;
+    const interval = pickInterval(days);
+    btn.disabled = true; const label = btn.textContent; btn.textContent = "Carico…";
+    hint.className = "hint"; hint.textContent = "Recupero storico in corso…";
+    try {
+      const series = await buildHistorySeries(period1, period2, interval);
+      if (series.length < 2) throw new Error("dati storici insufficienti per l'intervallo scelto");
+      lastLineSeries = series;
+      drawLine(series);
+      save();
+      const first = series[0].v, last = series[series.length - 1].v;
+      const chg = first ? (last - first) / first * 100 : 0;
+      const sign = chg >= 0 ? "+" : "";
+      let txt = "Da " + eur(Math.round(first)) + " a " + eur(Math.round(last)) +
+        " (" + sign + chg.toFixed(1).replace(".", ",") + "%)";
+      if (series._skipped && series._skipped.length) {
+        txt += " · ⚠️ esclusi: " + escapeHtml(series._skipped.join(" · "));
+      }
+      hint.innerHTML = txt;
+    } catch (err) {
+      const local = /127\.0\.0\.1|localhost/.test(state.proxy || "");
+      hint.innerHTML = "Errore: " + escapeHtml(err.message) +
+        (local ? "" : ". Suggerimento: nelle <i>Impostazioni avanzate</i> premi «Usa proxy locale» (il proxy va avviato E selezionato qui).");
+    } finally {
+      btn.disabled = false; btn.textContent = label;
+    }
+  });
+
+  // Costruisce la serie "reale" del patrimonio (portafoglio + liquidità) dai versamenti registrati.
+  function buildRealSeries() {
+    const d = derive();
+    const pts = [];
+    const init0 = num(state.initValue) + num(state.initLiq);
+    if (init0 > 0) pts.push({ label: "Inizio", v: init0 });
+    d.rows.forEach(r => { if (isFinite(r.patr)) pts.push({ label: r.label, v: r.patr }); });
+    if (pts.length < 2) pts._msg = "Registra almeno un mese per vedere lo storico reale dei versamenti.";
+    return pts;
+  }
+
+  // Costruisce la serie dei "profitti": valore del portafoglio meno il capitale versato.
+  // Capitale versato cumulato = valore iniziale + somma degli importi investiti fino a quel mese.
+  function buildProfitSeries() {
+    const d = derive();
+    const pts = [];
+    const init = num(state.initValue);
+    pts.push({ label: "Inizio", v: 0 });
+    d.rows.forEach(r => {
+      // r.contributed = capitale versato cumulato (denaro reale dal conto)
+      // r.patr = patrimonio (portafoglio + liquidità cumulata)
+      if (isFinite(r.patr)) pts.push({ label: r.label, v: r.patr - r.contributed });
+    });
+    if (pts.length < 2) pts._msg = "Registra almeno un mese per vedere i profitti generati.";
+    return pts;
+  }
+
+  function setLineMode(mode) {
+    const valid = ["profit", "versato", "rendimento", "performance", "composizione", "pl", "proiezione", "benchmark"];
+    if (!valid.includes(mode)) mode = "profit";
+    state.lineMode = mode; save();
+    const btnMap = { profit: "btnCProfit", versato: "btnCVersato", rendimento: "btnCRend", performance: "btnCPerf", composizione: "btnCComp", pl: "btnCPl", proiezione: "btnCProj", benchmark: "btnCBench" };
+    Object.keys(btnMap).forEach(m => { const b = $(btnMap[m]); if (b) b.className = m === mode ? "" : "ghost"; });
+    const ctrl = $("chartControls"); if (ctrl) ctrl.style.display = mode === "benchmark" ? "flex" : "none";
+    const desc = $("lineDesc"), hint = $("lineHint"), legend = $("lineLegend");
+    if (hint) hint.innerHTML = "";
+    if (legend) legend.innerHTML = "";
+    const d = derive();
+    const init0 = num(state.initValue) + num(state.initLiq);
+    let cfg = null, drawFn = null;
+
+    if (mode === "profit") {
+      const pts = [{ label: "Inizio", v: 0 }];
+      d.rows.forEach(r => { if (isFinite(r.patr)) pts.push({ label: r.label, v: r.patr - r.contributed }); });
+      const last = pts.length ? pts[pts.length - 1].v : 0;
+      cfg = { lines: [{ label: "Profitto", pts, color: last >= 0 ? "#34d399" : "#f87171" }], fmt: fmtEur, zero: true, area: true, empty: "Registra almeno un mese per vedere i profitti generati." };
+      drawFn = drawLineChart;
+      if (desc) desc.innerHTML = "<b>Profitti generati</b>: differenza tra il <b>patrimonio</b> (valore ETF + liquidità cumulata) e il <b>capitale versato</b>. Sopra lo zero sei in guadagno, sotto in perdita.";
+      if (hint && pts.length >= 2) {
+        const contr = d.contributed, pct = contr ? last / contr * 100 : 0, s = last >= 0 ? "+" : "";
+        hint.innerHTML = "Profitto attuale: <b class='" + (last >= 0 ? "pos" : "neg") + "'>" + s + eur(last) + "</b> su " + eur(contr) + " versati (" + s + pct.toFixed(1).replace(".", ",") + "%)";
+      }
+    } else if (mode === "versato") {
+      const pv = [], pp = [];
+      if (init0 > 0) { pv.push({ label: "Inizio", v: init0 }); pp.push({ label: "Inizio", v: init0 }); }
+      d.rows.forEach(r => { pv.push({ label: r.label, v: r.contributed }); pp.push({ label: r.label, v: r.patr }); });
+      cfg = { lines: [{ label: "Versato", pts: pv, color: "#818cf8" }, { label: "Patrimonio", pts: pp, color: "#38bdf8" }], fmt: fmtEur, empty: "Registra almeno un mese." };
+      drawFn = drawLineChart;
+      if (desc) desc.innerHTML = "Confronto tra il <b>capitale versato</b> cumulato (quanto hai messo dal conto) e il <b>patrimonio</b> attuale. La distanza tra le due linee è il profitto.";
+      if (legend) legend.innerHTML = legendHtml([["#818cf8", "Capitale versato"], ["#38bdf8", "Patrimonio"]]);
+    } else if (mode === "rendimento") {
+      const pr = [{ label: "Inizio", v: 0 }];
+      d.rows.forEach(r => { if (isFinite(r.patr) && r.contributed > 0) pr.push({ label: r.label, v: (r.patr / r.contributed - 1) * 100 }); });
+      const last = pr.length ? pr[pr.length - 1].v : 0;
+      cfg = { lines: [{ label: "Rendimento", pts: pr, color: last >= 0 ? "#34d399" : "#f87171" }], fmt: fmtPct, zero: true, area: true, empty: "Registra almeno un mese." };
+      drawFn = drawLineChart;
+      if (desc) desc.innerHTML = "<b>Rendimento %</b>: profitto in percentuale sul capitale versato, mese per mese. Dice se stai davvero rendendo, al netto dell'effetto \"accumulo\" (che gonfia il profitto in €).";
+      if (hint && pr.length >= 2) { const s = last >= 0 ? "+" : ""; hint.innerHTML = "Rendimento attuale: <b class='" + (last >= 0 ? "pos" : "neg") + "'>" + s + last.toFixed(1).replace(".", ",") + "%</b>"; }
+    } else if (mode === "performance") {
+      const bars = d.rows.map(r => {
+        const prevPatr = r.patr - r.perf - r.deposit; // patrimonio a inizio mese
+        const pct = prevPatr > 0 ? r.perf / prevPatr * 100 : null;
+        return { label: r.label, v: r.perf, color: r.perf >= 0 ? "#34d399" : "#f87171", sub: pct != null ? "Rendimento mese: " + fmtPct(pct) : null };
+      });
+      cfg = { bars, fmt: fmtEur, empty: "Registra almeno un mese." };
+      drawFn = drawBarChart;
+      if (desc) desc.innerHTML = "<b>Performance mensile</b>: guadagno o perdita di mercato di ogni singolo mese (variazione del patrimonio al netto dei versamenti), in € e in % sul patrimonio d'inizio mese. Verde = mese positivo, rosso = negativo.";
+    } else if (mode === "composizione") {
+      const labels = [], etf = [], liq = [];
+      if (init0 > 0) { labels.push("Inizio"); etf.push(num(state.initValue)); liq.push(num(state.initLiq)); }
+      d.rows.forEach(r => { labels.push(r.label); etf.push(r.endVal); liq.push(r.liq); });
+      cfg = { labels, layers: [{ name: "ETF", vals: etf, color: "#38bdf8" }, { name: "Liquidità", vals: liq, color: "#fbbf24" }], fmt: fmtEur, empty: "Registra almeno un mese." };
+      drawFn = drawStackChart;
+      if (desc) desc.innerHTML = "<b>Composizione del patrimonio</b> nel tempo: quanto è investito in ETF e quanto tenuto in liquidità di riserva, mese per mese.";
+      if (legend) legend.innerHTML = legendHtml([["#38bdf8", "ETF investiti"], ["#fbbf24", "Liquidità"]]);
+    } else if (mode === "proiezione") {
+      const goal = num(state.goal);
+      const rate = state.projRate === "" || state.projRate == null ? 5 : num(state.projRate);
+      const startPatr = d.rows.length ? d.rows[d.rows.length - 1].patr : init0;
+      const monthly = state.projMonthly === "" || state.projMonthly == null ? avgMonthlyDeposit(d) : num(state.projMonthly);
+      if (!goal || goal <= 0) {
+        cfg = { lines: [], empty: "Imposta un obiettivo nella sezione «Proiezione verso l'obiettivo»." };
+      } else {
+        // orizzonte: fino al raggiungimento (caso atteso), con margine, cap 50 anni
+        let horizon = monthsToGoal(startPatr, monthly, rate, goal);
+        if (horizon == null) horizon = monthsToGoal(startPatr, monthly, rate + 3, goal) || 600;
+        horizon = Math.min(600, Math.max(12, Math.round(horizon * 1.15)));
+        const step = Math.max(1, Math.ceil(horizon / 90)); // limita i punti a ~90
+        const today = new Date();
+        const flabel = k => { const dd = new Date(today.getFullYear(), today.getMonth() + k, 1); return dd.toLocaleDateString("it-IT", { month: "short", year: "2-digit" }); };
+        const proj = (annualPct) => {
+          const rm = annualPct / 100 / 12; const pts = []; let p = startPatr;
+          for (let k = 0; k <= horizon; k++) {
+            if (k % step === 0 || k === horizon) pts.push({ label: flabel(k), v: p });
+            p = p * (1 + rm) + monthly;
+          }
+          return pts;
+        };
+        const exp = proj(rate), pes = proj(Math.max(0, rate - 3)), opt = proj(rate + 3);
+        const goalPts = exp.map(p => ({ label: p.label, v: goal }));
+        cfg = {
+          lines: [
+            { label: "Ottimistico (" + (rate + 3).toFixed(1).replace(".", ",") + "%)", pts: opt, color: "#34d399", noDots: true },
+            { label: "Atteso (" + rate.toFixed(1).replace(".", ",") + "%)", pts: exp, color: "#38bdf8", noDots: true, width: 2.5 },
+            { label: "Pessimistico (" + Math.max(0, rate - 3).toFixed(1).replace(".", ",") + "%)", pts: pes, color: "#fbbf24", noDots: true },
+            { label: "Obiettivo", pts: goalPts, color: "#f87171", dash: true, noDots: true }
+          ], fmt: fmtEur, empty: "Imposta un obiettivo."
+        };
+        if (legend) legend.innerHTML = legendHtml([["#34d399", "Ottimistico"], ["#38bdf8", "Atteso"], ["#fbbf24", "Pessimistico"], ["#f87171", "Obiettivo " + eur(goal)]]);
+      }
+      drawFn = drawLineChart;
+      if (desc) desc.innerHTML = "<b>Proiezione</b> del patrimonio partendo da oggi, versando il versamento mensile indicato, con tre scenari di rendimento (±3% attorno all'ipotesi). La linea rossa tratteggiata è l'obiettivo.";
+    } else if (mode === "benchmark") {
+      if (desc) desc.innerHTML = "<b>Confronto con un indice/benchmark</b>: la crescita del tuo portafoglio (solo mercato, TWR) contro l'andamento dell'indice scelto, entrambi normalizzati a 100 all'inizio del periodo. Richiede il proxy prezzi attivo.";
+      if (!benchData || benchData.months !== d.rows.length) {
+        cfg = { lines: [], empty: benchData ? "Dati cambiati: premi «Carica benchmark»." : "Inserisci un ticker e premi «Carica benchmark»." };
+      } else {
+        // linea portafoglio: crescita TWR normalizzata a 100
+        const port = [{ label: "Inizio", v: 100 }]; let g = 100, prev = init0;
+        d.rows.forEach(r => { if (prev > 0) g *= (1 + r.perf / prev); prev = r.patr; port.push({ label: r.label, v: g }); });
+        const bench = benchData.norm.map((v, i) => ({ label: i === 0 ? "Inizio" : (d.rows[i - 1] ? d.rows[i - 1].label : ""), v }));
+        cfg = { lines: [{ label: "Portafoglio", pts: port, color: "#38bdf8" }, { label: benchData.symbol, pts: bench, color: "#f472b6" }], fmt: v => v.toFixed(1).replace(".", ",") + " (base 100)", empty: "Carica il benchmark." };
+        if (legend) legend.innerHTML = legendHtml([["#38bdf8", "Il tuo portafoglio (TWR)"], ["#f472b6", benchData.symbol]]);
+        const pf = port[port.length - 1].v - 100, bf = bench[bench.length - 1].v - 100;
+        if (hint) hint.innerHTML = "Nel periodo: portafoglio <b class='" + (pf >= 0 ? "pos" : "neg") + "'>" + fmtPct(pf) + "</b> · " + escapeHtml(benchData.symbol) + " <b class='" + (bf >= 0 ? "pos" : "neg") + "'>" + fmtPct(bf) + "</b>";
+      }
+      drawFn = drawLineChart;
+    } else { // pl
+      const bars = state.holdings
+        .map(h => {
+          const buy = num(h.buyPrice), qty = num(h.qty), price = num(h.price);
+          const pl = (buy > 0 && qty > 0 && price > 0) ? (price - buy) * qty : null;
+          const pct = (buy > 0 && price > 0) ? (price / buy - 1) * 100 : null;
+          return { name: h.name || h.symbol || h.isin || "?", pl, pct };
+        })
+        .filter(x => x.pl != null)
+        .map(x => ({ label: x.name, full: x.name, v: x.pl, color: x.pl >= 0 ? "#34d399" : "#f87171", sub: x.pct != null ? "Rendimento: " + fmtPct(x.pct) : null }))
+        .sort((a, b) => b.v - a.v);
+      cfg = { bars, fmt: fmtEur, empty: "Inserisci il prezzo medio di acquisto (PMC) negli asset per vedere il P/L." };
+      drawFn = drawHBarChart;
+      if (desc) desc.innerHTML = "<b>P/L per asset</b>: profitto o perdita non realizzato di ogni titolo, calcolato da prezzo medio di carico, quantità e prezzo attuale. Ordinato dal migliore al peggiore. Passa il mouse sopra una barra per il nome completo e il rendimento %.";
+    }
+
+    currentChartCfg = { cfg, drawFn };
+    drawFn(cfg, null);
+  }
+
+  let resizeT;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => { renderPie(); if (currentChartCfg && currentChartCfg.drawFn) currentChartCfg.drawFn(currentChartCfg.cfg, null); }, 150);
+  });
+
+  // Tooltip: individua l'elemento sotto il mouse e ridisegna il grafico attivo con l'evidenziazione.
+  (function () {
+    const canvas = $("lineCanvas");
+    if (!canvas) return;
+    let hoverIdx = null;
+    canvas.addEventListener("mousemove", (e) => {
+      if (!currentChartCfg || !activeGeom || !activeGeom.hit) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      const idx = activeGeom.hit(mx, my);
+      if (idx !== hoverIdx) { hoverIdx = idx; currentChartCfg.drawFn(currentChartCfg.cfg, hoverIdx); }
+    });
+    canvas.addEventListener("mouseleave", () => {
+      if (hoverIdx != null) { hoverIdx = null; if (currentChartCfg && currentChartCfg.drawFn) currentChartCfg.drawFn(currentChartCfg.cfg, null); }
+    });
+  })();
+
+  // Pulsanti selezione grafico
+  [["btnCProfit", "profit"], ["btnCVersato", "versato"], ["btnCRend", "rendimento"], ["btnCPerf", "performance"], ["btnCComp", "composizione"], ["btnCPl", "pl"], ["btnCProj", "proiezione"], ["btnCBench", "benchmark"]].forEach(([id, m]) => {
+    const b = $(id); if (b) b.addEventListener("click", () => setLineMode(m));
+  });
+
+  // Caricamento benchmark (indice) dallo storico Yahoo via proxy.
+  const btnLoadBenchEl = $("btnLoadBench");
+  if (btnLoadBenchEl) btnLoadBenchEl.addEventListener("click", async () => {
+    const status = $("benchStatus");
+    const symbol = ($("benchSymbol").value || "").trim() || "SWDA.MI";
+    state.benchSymbol = symbol; save();
+    const d = derive();
+    const n = d.rows.length;
+    if (n < 1) { if (status) status.innerHTML = "<span class='warn'>Registra almeno un mese.</span>"; return; }
+    btnLoadBenchEl.disabled = true; const lbl = btnLoadBenchEl.textContent; btnLoadBenchEl.textContent = "Carico…";
+    if (status) status.textContent = "Recupero storico dell'indice…";
+    try {
+      const now = new Date();
+      const p2 = Math.floor(now.getTime() / 1000);
+      const start = new Date(); start.setMonth(start.getMonth() - (n + 3));
+      const p1 = Math.floor(start.getTime() / 1000);
+      const hist = await fetchHistory(symbol, p1, p2, "1mo");
+      const cd = currencyDivisor(hist.currency);
+      const closes = hist.points.map(p => p.c / cd.div).filter(v => isFinite(v) && v > 0);
+      const need = n + 1;
+      if (closes.length < 2) throw new Error("dati storici insufficienti");
+      const tail = closes.slice(-need);
+      const base = tail[0];
+      const norm = tail.map(v => v / base * 100);
+      // se mancano punti, allinea comunque riempiendo con l'ultimo disponibile
+      while (norm.length < need) norm.unshift(100);
+      benchData = { symbol, norm, months: n };
+      if (status) status.innerHTML = "<span class='pos'>Caricato " + escapeHtml(symbol) + " (" + tail.length + " punti).</span>";
+      setLineMode("benchmark");
+    } catch (err) {
+      benchData = null;
+      const local = /127\.0\.0\.1|localhost/.test(state.proxy || "");
+      if (status) status.innerHTML = "<span class='warn'>Errore: " + escapeHtml(err.message) + "</span>" +
+        (local ? "" : " · suggerito il proxy locale (avvia price_proxy.py).");
+      setLineMode("benchmark");
+    } finally {
+      btnLoadBenchEl.disabled = false; btnLoadBenchEl.textContent = lbl;
+    }
+  });
+
+  // Interattività torta: evidenzia la fetta e la voce di legenda sotto il mouse.
+  (function () {
+    const canvas = $("pieCanvas");
+    if (!canvas) return;
+    function sliceAt(mx, my) {
+      if (!pieSlices) return null;
+      const { items, cx, cy, r } = pieSlices;
+      const dx = mx - cx, dy = my - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist > r + 6 || dist < r * 0.55) return null; // fuori dalla corona
+      let a = Math.atan2(dy, dx);
+      // porta l'angolo nello stesso range degli spicchi (che partono da -PI/2)
+      while (a < -Math.PI / 2) a += Math.PI * 2;
+      while (a >= Math.PI * 2 - Math.PI / 2) a -= Math.PI * 2;
+      for (let i = 0; i < items.length; i++) {
+        if (a >= items[i].a0 && a < items[i].a1) return i;
+      }
+      return null;
+    }
+    function setHover(idx) {
+      if (idx === pieHover) return;
+      pieHover = idx;
+      drawPie();
+      document.querySelectorAll("#pieLegend .pie-leg").forEach(el => {
+        const on = parseInt(el.dataset.slice, 10) === idx;
+        el.style.background = on ? "rgba(255,255,255,.08)" : "transparent";
+      });
+      canvas.style.cursor = idx != null ? "pointer" : "default";
+    }
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      setHover(sliceAt(e.clientX - rect.left, e.clientY - rect.top));
+    });
+    canvas.addEventListener("mouseleave", () => setHover(null));
+    // hover anche dalla legenda
+    const legend = $("pieLegend");
+    if (legend) {
+      legend.addEventListener("mousemove", (e) => {
+        const row = e.target.closest(".pie-leg");
+        setHover(row ? parseInt(row.dataset.slice, 10) : null);
+      });
+      legend.addEventListener("mouseleave", () => setHover(null));
+    }
+  })();
+
+  // ---- init ----
+  load();
+  syncInputsFromState();
+  render();
+  renderHoldings();
+  renderPie();
+  setLineMode(state.lineMode || "profit");
+  updatePreview();
+})();
+
+// Registrazione service worker (PWA installabile). Solo su http/https, non su file://.
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
