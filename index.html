@@ -1017,6 +1017,13 @@
   }
 
   // ---- persistence ----
+  function isEmptyState(s) {
+    if (!s || typeof s !== "object") return true;
+    const noMonths = !Array.isArray(s.months) || s.months.length === 0;
+    const noHold = !Array.isArray(s.holdings) || s.holdings.length === 0;
+    return noMonths && noHold;
+  }
+
   function save() {
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     lastLocalChange = Date.now();
@@ -1258,6 +1265,7 @@
   $("btnReset").addEventListener("click", () => {
     if (confirm("Azzerare tutti i dati (mesi, stato iniziale e regole)?")) {
       localStorage.removeItem(LS_KEY);
+      localStorage.removeItem(LS_KEY + "_updatedAt");
       location.reload();
     }
   });
@@ -1814,6 +1822,8 @@
 
   async function uploadState() {
     if (!cloud.connected || !cloud.docRef) return;
+    // Non caricare mai uno stato vuoto in cloud: eviterebbe di sovrascrivere dati reali su altri dispositivi.
+    if (isEmptyState(state)) return;
     try {
       const { setDoc } = fbMods.storeMod;
       await setDoc(cloud.docRef, {
@@ -1831,6 +1841,11 @@
   function applyRemoteState(remote) {
     try {
       const parsed = JSON.parse(remote.state);
+      // Sicurezza: non sovrascrivere dati locali reali con uno stato remoto vuoto.
+      if (isEmptyState(parsed) && !isEmptyState(state)) {
+        fbStatus("Ignorati dati cloud vuoti (mantenuti i dati locali).", "warn");
+        return;
+      }
       cloud.applyingRemote = true;
       state = Object.assign({ cfg: {}, crash: [], months: [], holdings: [] }, parsed);
       lastLocalChange = remote.updatedAt || Date.now();
@@ -1890,14 +1905,22 @@
     cloud.connected = true;
     cloud.unsub = onSnapshot(cloud.docRef, (snap) => {
       if (!snap.exists()) {
-        uploadState();
-        fbStatus("Connesso. Nessun dato in cloud: caricato lo stato locale.", "");
+        if (!isEmptyState(state)) { uploadState(); fbStatus("Connesso. Caricati in cloud i dati locali.", ""); }
+        else fbStatus("Connesso. In attesa di dati…", "");
         return;
       }
       const data = snap.data();
       if (data.client === CLIENT_ID) return; // eco della nostra scrittura
-      if ((data.updatedAt || 0) > lastLocalChange) applyRemoteState(data);
-      else if ((data.updatedAt || 0) < lastLocalChange) uploadState();
+      let remoteState = null;
+      try { remoteState = JSON.parse(data.state); } catch (e) {}
+      const remoteEmpty = isEmptyState(remoteState);
+      const localEmpty = isEmptyState(state);
+      const rt = data.updatedAt || 0;
+      // I dati reali hanno sempre la precedenza sullo stato vuoto, a prescindere dal timestamp.
+      if (remoteEmpty && !localEmpty) { uploadState(); return; }
+      if (!remoteEmpty && localEmpty) { applyRemoteState(data); return; }
+      if (rt > lastLocalChange) applyRemoteState(data);
+      else if (rt < lastLocalChange) uploadState();
     }, (err) => {
       fbStatus("Errore sincronizzazione: " + (err && err.message ? err.message : err), "bad");
     });

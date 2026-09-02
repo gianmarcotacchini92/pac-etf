@@ -1,5 +1,5 @@
 // Service worker: cache dell'app shell per uso offline.
-const CACHE = "pac-etf-v1";
+const CACHE = "pac-etf-v2";
 const ASSETS = [
   "./index.html",
   "./manifest.webmanifest",
