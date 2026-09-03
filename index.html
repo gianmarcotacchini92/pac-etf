@@ -272,6 +272,29 @@
     table { font-size: 12px; }
     th, td { padding: 8px 6px; }
   }
+
+  /* ---- Barra di navigazione a schede ---- */
+  body { padding-bottom: 88px; }
+  .tabbar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 600px; z-index: 60;
+    display: flex; gap: 4px;
+    background: rgba(15,23,42,.97); backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-bottom: none;
+    border-radius: 16px 16px 0 0;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 24px rgba(0,0,0,.35);
+  }
+  .tabbtn {
+    flex: 1; background: transparent; color: var(--muted); border: none;
+    border-radius: 10px; padding: 6px 2px; cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: background .12s ease, color .12s ease;
+  }
+  .tabbtn .tico { font-size: 20px; line-height: 1; }
+  .tabbtn.active { color: var(--accent); background: rgba(56,189,248,.12); }
+  .tabbtn:active { transform: translateY(1px); }
 </style>
 </head>
 <body>
@@ -279,9 +302,16 @@
   <h1>Gestione PAC ETF</h1>
   <div class="subtitle">Piano di accumulo con quota d'acquisto suggerita in base alla performance mensile <span style="opacity:.6;">· build 2026-07-08a</span></div>
 
-  <div class="grid">
-    <!-- Stato iniziale + config -->
-    <div class="card">
+  <nav class="tabbar" id="tabbar">
+    <button type="button" class="tabbtn active" data-go="home"><span class="tico">🏠</span>Home</button>
+    <button type="button" class="tabbtn" data-go="portafoglio"><span class="tico">💹</span>Portafoglio</button>
+    <button type="button" class="tabbtn" data-go="mese"><span class="tico">📈</span>Mese</button>
+    <button type="button" class="tabbtn" data-go="piano"><span class="tico">📉</span>Piano</button>
+    <button type="button" class="tabbtn" data-go="impostazioni"><span class="tico">⚙️</span>Impostazioni</button>
+  </nav>
+
+  <!-- Stato iniziale + config -->
+  <div class="card" data-tab="piano">
       <h2><span class="ico">⚙️</span> Stato iniziale &amp; regole</h2>
       <div class="row2">
         <div>
@@ -310,8 +340,8 @@
       <div class="hint">La quota minima è quanto investi sempre quando la performance è già forte (il resto del budget va in liquidità).</div>
     </div>
 
-    <!-- Nuovo mese -->
-    <div class="card">
+  <!-- Nuovo mese -->
+  <div class="card" data-tab="mese">
       <h2><span class="ico">➕</span> Nuovo mese</h2>
       <label>Etichetta mese (es. Gen 2026)</label>
       <input type="text" id="mLabel" placeholder="Mese/Anno" />
@@ -320,10 +350,9 @@
       <div class="hint">La performance viene calcolata rispetto al valore di fine mese precedente.</div>
       <button id="btnAdd" style="width:100%;">Calcola e registra mese</button>
     </div>
-  </div>
 
   <!-- Allocazione: torta + obiettivo -->
-  <div class="card" style="margin-bottom:16px;">
+  <div class="card" style="margin-bottom:16px;" data-tab="portafoglio">
     <h2><span class="ico">🥧</span> Allocazione &amp; obiettivo</h2>
     <div style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
@@ -349,7 +378,7 @@
   </div>
 
   <!-- Portafoglio ETF con prezzi automatici -->
-  <div class="card" style="margin-bottom:16px;">
+  <div class="card" style="margin-bottom:16px;" data-tab="portafoglio">
     <h2><span class="ico">💹</span> Portafoglio ETF — prezzi automatici</h2>
     <div class="hint">Inserisci <b>ISIN</b> e <b>quantità</b>: i prezzi vengono recuperati da Yahoo Finance tramite un proxy pubblico (serve per aggirare il blocco CORS del browser). Per risultati più affidabili puoi indicare direttamente il <b>ticker</b> di borsa (es. <code>SWDA.MI</code>, <code>VWCE.DE</code>).</div>
     <div class="table-wrap">
@@ -392,7 +421,7 @@
   </div>
 
   <!-- Suggerimento -->
-  <div id="suggestion" style="margin-bottom:16px;">
+  <div id="suggestion" style="margin-bottom:16px;" data-tab="home">
     <div class="sug-head">Suggerimento (anteprima in tempo reale)</div>
     <div class="sug-main neu" id="sugMain">Inserisci il valore attuale del portafoglio…</div>
     <div class="sug-grid" id="sugGrid"></div>
@@ -400,7 +429,7 @@
   </div>
 
   <!-- Riepilogo -->
-  <div class="card" style="margin-bottom:16px;">
+  <div class="card" style="margin-bottom:16px;" data-tab="home">
     <h2><span class="ico">📊</span> Riepilogo</h2>
     <div class="grid" style="margin-bottom:0;">
       <div class="stat"><div class="k">Valore portafoglio</div><div class="v neu" id="sVal">€0</div></div>
@@ -412,7 +441,7 @@
   </div>
 
   <!-- Rendimento annualizzato -->
-  <div class="card" style="margin-bottom:16px;">
+  <div class="card" style="margin-bottom:16px;" data-tab="home">
     <h2><span class="ico">📐</span> Rendimento annualizzato</h2>
     <div class="hint">I mesi registrati sono considerati consecutivi (cadenza mensile del PAC). Il <b>TWR</b> misura la bravura degli strumenti (indipendente da quando versi); l'<b>XIRR</b> (o TIR) è il rendimento reale annuo dei <i>tuoi</i> versamenti, tenendo conto di quanto e quando hai messo.</div>
     <div class="grid" style="margin-bottom:0;">
@@ -424,7 +453,7 @@
   </div>
 
   <!-- Proiezione verso l'obiettivo -->
-  <div class="card" style="margin-bottom:16px;">
+  <div class="card" style="margin-bottom:16px;" data-tab="home">
     <h2><span class="ico">🎯</span> Proiezione verso l'obiettivo</h2>
     <div class="row3">
       <div>
@@ -444,7 +473,7 @@
   </div>
 
   <!-- Grafici -->
-  <div class="card" style="margin-bottom:16px;">
+  <div class="card" style="margin-bottom:16px;" data-tab="mese">
     <h2><span class="ico">📈</span> Grafici</h2>
     <div id="chartModes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
       <button id="btnCProfit">Profitti generati</button>
@@ -468,7 +497,7 @@
   </div>
 
   <!-- Punti d'ingresso crolli -->
-  <div class="card" style="margin-bottom:16px;">
+  <div class="card" style="margin-bottom:16px;" data-tab="piano">
     <h2><span class="ico">📉</span> Punti d'ingresso in caso di crollo</h2>
     <div class="hint">Le percentuali dividono la <b>liquidità di riserva</b> (la liquidità attuale) tra le tre soglie e <b>devono sommare a 100%</b>. Riserva la quota maggiore ai drawdown più profondi: ogni importo è calcolato sulla riserva iniziale, così i grandi cali ricevono sempre la fetta più grande anche dopo aver già investito nei primi scaglioni.</div>
     <div class="row3" style="margin-bottom:14px;">
@@ -499,7 +528,7 @@
   </div>
 
   <!-- Storico -->
-  <div class="card" style="margin-bottom:16px;">
+  <div class="card" style="margin-bottom:16px;" data-tab="mese">
     <h2><span class="ico">🗂️</span> Storico mensile</h2>
     <div class="table-wrap">
       <table>
@@ -531,7 +560,7 @@
     </div>
   </div>
 
-  <div class="card" style="margin-bottom:16px;">
+  <div class="card" style="margin-bottom:16px;" data-tab="impostazioni">
     <h2><span class="ico">☁️</span> Sincronizzazione cloud (Firebase + Google)</h2>
     <div class="hint" style="margin-top:0;line-height:1.6;">
       Accedi con il tuo account <b>Google</b> su PC e telefono: i dati vengono salvati in cloud
@@ -563,7 +592,7 @@
     <div id="fbStatus" class="note" style="margin-top:12px;">Non connesso.</div>
   </div>
 
-  <details style="max-width:1400px;margin:0 auto 40px;">
+  <details style="max-width:1400px;margin:0 auto 40px;" data-tab="impostazioni">
     <summary>Come funziona il calcolo della quota</summary>
     <div class="hint" style="margin-top:10px;line-height:1.6;">
       Ogni mese il portafoglio deve crescere di almeno la <b>crescita target</b> (150€).
@@ -2882,6 +2911,32 @@
     }
   })();
 
+  // ---- Navigazione a schede ----
+  const TAB_KEY = "pacEtfTab";
+  const TABS = ["home", "portafoglio", "mese", "piano", "impostazioni"];
+  function switchTab(name) {
+    if (TABS.indexOf(name) < 0) name = "home";
+    document.querySelectorAll("[data-tab]").forEach(function (el) {
+      el.style.display = (el.getAttribute("data-tab") === name) ? "" : "none";
+    });
+    document.querySelectorAll(".tabbtn").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-go") === name);
+    });
+    try { localStorage.setItem(TAB_KEY, name); } catch (e) {}
+    window.scrollTo(0, 0);
+    // I grafici su canvas vanno ridisegnati ora che la scheda è visibile (larghezza corretta).
+    try {
+      render(); renderHoldings(); renderPie(); renderAllocation();
+      setLineMode(state.lineMode || "profit"); updatePreview();
+    } catch (e) {}
+  }
+  function initTabs() {
+    document.querySelectorAll(".tabbtn").forEach(function (b) {
+      b.addEventListener("click", function () { switchTab(b.getAttribute("data-go")); });
+    });
+    switchTab(localStorage.getItem(TAB_KEY) || "home");
+  }
+
   // ---- init ----
   load();
   syncInputsFromState();
@@ -2890,6 +2945,7 @@
   renderPie();
   setLineMode(state.lineMode || "profit");
   updatePreview();
+  initTabs();
 })();
 
 // Registrazione service worker (PWA installabile). Solo su http/https, non su file://.
