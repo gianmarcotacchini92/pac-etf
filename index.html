@@ -608,9 +608,10 @@
   <div class="card" style="max-width:640px;width:100%;max-height:88vh;overflow:auto;">
     <h2 style="margin-top:0;"><span class="ico">↔</span> Importa posizioni da Scalable</h2>
     <div class="hint" style="margin-top:0;line-height:1.6;">
-      Chiedi al tuo assistente AI collegato a Scalable (o alla CLI ufficiale) di
-      <b>esportare le posizioni in JSON</b> e incolla qui il risultato. Vengono letti
-      ISIN, nome, ticker, quantità, prezzo medio di carico, prezzo attuale e valuta.
+      Chiedi al tuo assistente AI collegato a Scalable (es. Claude col connettore) di
+      <b>esportare le posizioni in JSON</b>. Poi: <b>copia</b> il risultato e premi «📋 Incolla dagli appunti»,
+      oppure su Android <b>condividi</b> il testo verso «PAC ETF». Vengono letti ISIN, nome, ticker,
+      quantità, prezzo medio di carico, prezzo attuale e valuta. Il JSON può anche essere incollato con testo attorno.
     </div>
     <label style="margin-top:12px;">JSON delle posizioni</label>
     <textarea id="scalableJson" spellcheck="false" placeholder='Es.
@@ -625,9 +626,12 @@
       Sostituisci le posizioni ETF esistenti (default: aggiunge senza cancellare)
     </label>
     <div id="scalableMsg" class="hint" style="min-height:18px;"></div>
-    <div class="toolbar" style="justify-content:flex-end;">
-      <button class="ghost" id="btnScalableCancel">Annulla</button>
-      <button id="btnScalableConfirm">Importa</button>
+    <div class="toolbar" style="justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <button class="ghost" id="btnScalablePaste">📋 Incolla dagli appunti</button>
+      <div style="display:flex;gap:10px;">
+        <button class="ghost" id="btnScalableCancel">Annulla</button>
+        <button id="btnScalableConfirm">Importa</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1692,6 +1696,19 @@
     el.textContent = text;
   }
 
+  // Estrae il JSON anche se avvolto in ``` fence o circondato da testo (es. risposte di Claude).
+  function extractJsonText(s) {
+    if (!s) return "";
+    s = String(s).replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
+    const fb = s.indexOf("{"), fa = s.indexOf("[");
+    let start = -1, close = "";
+    if (fa >= 0 && (fb < 0 || fa < fb)) { start = fa; close = "]"; }
+    else if (fb >= 0) { start = fb; close = "}"; }
+    if (start < 0) return s;
+    const last = s.lastIndexOf(close);
+    return (last > start) ? s.slice(start, last + 1) : s.slice(start);
+  }
+
   function openScalableModal() {
     $("scalableJson").value = "";
     scalableMsg("");
@@ -1702,6 +1719,15 @@
 
   $("btnImportScalable").addEventListener("click", openScalableModal);
   $("btnScalableCancel").addEventListener("click", closeScalableModal);
+  $("btnScalablePaste").addEventListener("click", async () => {
+    try {
+      const t = await navigator.clipboard.readText();
+      if (t && t.trim()) { $("scalableJson").value = t.trim(); scalableMsg("Incollato dagli appunti. Premi «Importa».", "note"); }
+      else scalableMsg("Appunti vuoti.", "note");
+    } catch (e) {
+      scalableMsg("Impossibile leggere gli appunti (consenti l'accesso o incolla a mano): " + e.message, "note");
+    }
+  });
   $("scalableModal").addEventListener("click", (e) => { if (e.target === $("scalableModal")) closeScalableModal(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("scalableModal").style.display === "flex") closeScalableModal(); });
 
@@ -1709,7 +1735,7 @@
     const raw = $("scalableJson").value.trim();
     if (!raw) { scalableMsg("Incolla prima il JSON delle posizioni.", "note"); return; }
     let data;
-    try { data = JSON.parse(raw); }
+    try { data = JSON.parse(extractJsonText(raw)); }
     catch (err) { scalableMsg("JSON non valido: " + err.message, "note"); return; }
     const arr = findPositionsArray(data);
     if (!arr || !arr.length) { scalableMsg("Nessuna posizione trovata nel JSON (attesa una lista di posizioni).", "note"); return; }
@@ -2937,6 +2963,20 @@
     switchTab(localStorage.getItem(TAB_KEY) || "home");
   }
 
+  // Se l'app viene aperta tramite "Condividi" (Web Share Target), precarica il testo
+  // ricevuto nel modal di import Scalable, così basta confermare.
+  function handleSharedImport() {
+    try {
+      const p = new URLSearchParams(location.search);
+      const shared = (p.get("text") || p.get("url") || "").trim();
+      if (!shared) return;
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+      openScalableModal();
+      $("scalableJson").value = shared;
+      scalableMsg("Testo ricevuto dalla condivisione. Controlla e premi «Importa».", "note");
+    } catch (e) {}
+  }
+
   // ---- init ----
   load();
   syncInputsFromState();
@@ -2946,6 +2986,7 @@
   setLineMode(state.lineMode || "profit");
   updatePreview();
   initTabs();
+  handleSharedImport();
 })();
 
 // Registrazione service worker (PWA installabile). Solo su http/https, non su file://.
