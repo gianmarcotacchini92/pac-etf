@@ -304,10 +304,10 @@
 
   <nav class="tabbar" id="tabbar">
     <button type="button" class="tabbtn active" data-go="home"><span class="tico">🏠</span>Home</button>
-    <button type="button" class="tabbtn" data-go="portafoglio"><span class="tico">💹</span>Portafoglio</button>
+    <button type="button" class="tabbtn" data-go="riepilogo"><span class="tico">📊</span>Riepilogo</button>
     <button type="button" class="tabbtn" data-go="mese"><span class="tico">📈</span>Mese</button>
-    <button type="button" class="tabbtn" data-go="piano"><span class="tico">📉</span>Piano</button>
-    <button type="button" class="tabbtn" data-go="impostazioni"><span class="tico">⚙️</span>Impostazioni</button>
+    <button type="button" class="tabbtn" data-go="piano"><span class="tico">📋</span>Piano</button>
+    <button type="button" class="tabbtn" data-go="account"><span class="tico">👤</span>Account</button>
   </nav>
 
   <!-- Stato iniziale + config -->
@@ -352,7 +352,7 @@
     </div>
 
   <!-- Allocazione: torta + obiettivo -->
-  <div class="card" style="margin-bottom:16px;" data-tab="portafoglio">
+  <div class="card" style="margin-bottom:16px;" data-tab="home">
     <h2><span class="ico">🥧</span> Allocazione &amp; obiettivo</h2>
     <div style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
@@ -378,7 +378,7 @@
   </div>
 
   <!-- Portafoglio ETF con prezzi automatici -->
-  <div class="card" style="margin-bottom:16px;" data-tab="portafoglio">
+  <div class="card" style="margin-bottom:16px;" data-tab="home">
     <h2><span class="ico">💹</span> Portafoglio ETF — prezzi automatici</h2>
     <div class="hint">Inserisci <b>ISIN</b> e <b>quantità</b>: i prezzi vengono recuperati da Yahoo Finance tramite un proxy pubblico (serve per aggirare il blocco CORS del browser). Per risultati più affidabili puoi indicare direttamente il <b>ticker</b> di borsa (es. <code>SWDA.MI</code>, <code>VWCE.DE</code>).</div>
     <div class="table-wrap">
@@ -421,7 +421,7 @@
   </div>
 
   <!-- Suggerimento -->
-  <div id="suggestion" style="margin-bottom:16px;" data-tab="home">
+  <div id="suggestion" style="margin-bottom:16px;" data-tab="mese">
     <div class="sug-head">Suggerimento (anteprima in tempo reale)</div>
     <div class="sug-main neu" id="sugMain">Inserisci il valore attuale del portafoglio…</div>
     <div class="sug-grid" id="sugGrid"></div>
@@ -429,7 +429,7 @@
   </div>
 
   <!-- Riepilogo -->
-  <div class="card" style="margin-bottom:16px;" data-tab="home">
+  <div class="card" style="margin-bottom:16px;" data-tab="riepilogo">
     <h2><span class="ico">📊</span> Riepilogo</h2>
     <div class="grid" style="margin-bottom:0;">
       <div class="stat"><div class="k">Valore portafoglio</div><div class="v neu" id="sVal">€0</div></div>
@@ -441,7 +441,7 @@
   </div>
 
   <!-- Rendimento annualizzato -->
-  <div class="card" style="margin-bottom:16px;" data-tab="home">
+  <div class="card" style="margin-bottom:16px;" data-tab="riepilogo">
     <h2><span class="ico">📐</span> Rendimento annualizzato</h2>
     <div class="hint">I mesi registrati sono considerati consecutivi (cadenza mensile del PAC). Il <b>TWR</b> misura la bravura degli strumenti (indipendente da quando versi); l'<b>XIRR</b> (o TIR) è il rendimento reale annuo dei <i>tuoi</i> versamenti, tenendo conto di quanto e quando hai messo.</div>
     <div class="grid" style="margin-bottom:0;">
@@ -453,7 +453,7 @@
   </div>
 
   <!-- Proiezione verso l'obiettivo -->
-  <div class="card" style="margin-bottom:16px;" data-tab="home">
+  <div class="card" style="margin-bottom:16px;" data-tab="piano">
     <h2><span class="ico">🎯</span> Proiezione verso l'obiettivo</h2>
     <div class="row3">
       <div>
@@ -560,7 +560,7 @@
     </div>
   </div>
 
-  <div class="card" style="margin-bottom:16px;" data-tab="impostazioni">
+  <div class="card" style="margin-bottom:16px;" data-tab="account">
     <h2><span class="ico">☁️</span> Sincronizzazione cloud (Firebase + Google)</h2>
     <div class="hint" style="margin-top:0;line-height:1.6;">
       Accedi con il tuo account <b>Google</b> su PC e telefono: i dati vengono salvati in cloud
@@ -592,7 +592,7 @@
     <div id="fbStatus" class="note" style="margin-top:12px;">Non connesso.</div>
   </div>
 
-  <details style="max-width:1400px;margin:0 auto 40px;" data-tab="impostazioni">
+  <details style="max-width:1400px;margin:0 auto 40px;" data-tab="piano">
     <summary>Come funziona il calcolo della quota</summary>
     <div class="hint" style="margin-top:10px;line-height:1.6;">
       Ogni mese il portafoglio deve crescere di almeno la <b>crescita target</b> (150€).
@@ -2913,7 +2913,7 @@
 
   // ---- Navigazione a schede ----
   const TAB_KEY = "pacEtfTab";
-  const TABS = ["home", "portafoglio", "mese", "piano", "impostazioni"];
+  const TABS = ["home", "riepilogo", "mese", "piano", "account"];
   function switchTab(name) {
     if (TABS.indexOf(name) < 0) name = "home";
     document.querySelectorAll("[data-tab]").forEach(function (el) {
