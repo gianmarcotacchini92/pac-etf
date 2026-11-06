@@ -1683,7 +1683,8 @@
         if (!h.name && q.name) h.name = q.name;
         ok++;
       } catch (err) {
-        h.price = 0; fail++;
+        // Never erase a known price when Yahoo or its proxy fails.
+        fail++;
         errs.push((h.isin || h.symbol || "riga") + ": " + err.message);
       }
     }
