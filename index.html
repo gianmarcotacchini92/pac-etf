@@ -1651,22 +1651,24 @@
         }
       }
       // Registro idempotente delle operazioni, anche quando le quantità coincidono.
+      let newTransactions = 0;
       if (Array.isArray(payload.transactions)) {
         state.scalableTransactions = Array.isArray(state.scalableTransactions) ? state.scalableTransactions : [];
         const seen = new Set(state.scalableTransactions.map(t => t.id));
         for (const t of payload.transactions) {
           if (!t.id || seen.has(t.id)) continue;
           state.scalableTransactions.push(t);
+          newTransactions++;
           seen.add(t.id);
         }
       }
-      if (updated || positionChanges || newPositions) {
+      if (updated || positionChanges || newPositions || newTransactions) {
         save();
         renderHoldings(); renderAllocation(); updatePreview();
       }
       status.className = "note" + (updated ? "" : " warn");
-      status.textContent = updated || positionChanges || newPositions
-        ? "Scalable: " + updated + " prezzi, " + positionChanges + " quantità e " + newPositions + " nuovi strumenti. Salvati su Firebase se connesso."
+      status.textContent = updated || positionChanges || newPositions || newTransactions
+        ? "Scalable: " + updated + " prezzi, " + positionChanges + " quantità e " + newPositions + " nuovi strumenti e " + newTransactions + " operazioni registrate. Salvati su Firebase se connesso."
         : "Nessuna nuova quotazione disponibile. Scrivi in ChatGPT: Sincronizza PAC ETF.";
     } catch (error) {
       status.className = "note warn";
