@@ -40,7 +40,7 @@ function json(status, obj) {
   });
 }
 function isValidBearer(value) {
-  return typeof value === "string" && /^Bearer [A-Za-z0-9_-]{32,}$/.test(value);
+  return typeof value === "string" && value.startsWith("Bearer ") && value.length > 39 && !/[\r\n]/.test(value);
 }
 async function safeEqual(a, b) {
   // Hash and compare without short-circuiting on byte equality.
