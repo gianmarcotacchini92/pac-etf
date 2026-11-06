@@ -395,32 +395,17 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="ghost" id="btnAddHold">+ Aggiungi ETF</button>
         <button class="ghost" id="btnAddManual">+ Aggiungi asset manuale</button>
-        <button class="ghost" id="btnImportScalable">↔ Importa da Scalable</button>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <span class="hint" id="holdTotalTxt" style="margin:0;">Totale: €0</span>
         <button id="btnScalablePrices" type="button">Sincronizza portafoglio Scalable</button>
          <button class="ghost" id="btnCopySyncId" type="button">Copia ID sincronizzazione</button>
-         <button class="ghost" id="btnFetch">Prezzi Yahoo (alternativa)</button>
         <button class="ghost" id="btnUseTotal">Usa come valore del mese</button>
       </div>
     </div>
     <div id="holdStatus"></div>
      <div class="hint" style="margin-top:6px;">Per aggiornare: chiedi a ChatGPT «Sincronizza PAC ETF», poi premi «Sincronizza portafoglio Scalable». Devi aver effettuato l’accesso a Google/Firebase. Nessun bridge locale necessario.</div>
-    <details style="margin-top:10px;">
-      <summary>Impostazioni avanzate (proxy CORS)</summary>
-      <label style="margin-top:8px;">URL proxy (antepone l'URL codificato alla richiesta)</label>
-      <input type="text" id="proxyUrl" />
-      <div class="hint">Lascia vuoto per usare i proxy predefiniti (provati in automatico uno dopo l'altro). Alternative valide: <code>https://api.allorigins.win/get?url=</code> · <code>https://api.codetabs.com/v1/proxy/?quest=</code></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="ghost" id="btnLocalProxy" type="button">Usa proxy locale (127.0.0.1:8787)</button>
-        <button class="ghost" id="btnClearProxy" type="button">Ripristina predefiniti</button>
-      </div>
-      <div class="hint" style="margin-top:10px;line-height:1.6;">
-        <b>Proxy locale (consigliato, veloce e affidabile):</b> avvia lo script <code>price_proxy.py</code> presente nella cartella con <code>python price_proxy.py</code>,
-        poi premi «Usa proxy locale». Recupera i prezzi direttamente dal tuo PC senza dipendere da servizi esterni.
-      </div>
-    </details>
+    
   </div>
 
   <!-- Suggerimento -->
@@ -555,11 +540,8 @@
     </div>
     <div class="toolbar">
       <button class="ghost" id="btnExport">Esporta JSON</button>
-      <button class="ghost" id="btnImport">Importa JSON</button>
-      <button class="ghost" id="btnImportHistory">↔ Importa storico da Scalable</button>
       <button class="ghost" id="btnRestoreBackup">↩ Ripristina backup</button>
       <button class="ghost" id="btnReset">Azzera tutto</button>
-      <input type="file" id="fileImport" accept="application/json" style="display:none;" />
     </div>
   </div>
 
@@ -1123,7 +1105,7 @@
     $("dd1").value = state.crash[0].dd; $("dp1").value = state.crash[0].pct;
     $("dd2").value = state.crash[1].dd; $("dp2").value = state.crash[1].pct;
     $("dd3").value = state.crash[2].dd; $("dp3").value = state.crash[2].pct;
-    $("proxyUrl").value = state.proxy;
+    if ($("proxyUrl")) $("proxyUrl").value = state.proxy;
     $("allocAmount").value = state.allocAmount || "";
     $("projGoal").value = state.goal || "";
     $("projRate").value = state.projRate || "";
@@ -1306,24 +1288,6 @@
     a.download = "pac-etf.json";
     a.click();
     URL.revokeObjectURL(a.href);
-  });
-
-  $("btnImport").addEventListener("click", () => $("fileImport").click());
-  $("fileImport").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const s = JSON.parse(reader.result);
-        state = Object.assign({ cfg: {}, crash: [], months: [] }, s);
-        editIdx = null;
-        save(); syncInputsFromState(); render(); renderHoldings(); updatePreview();
-        setLineMode(state.lineMode || "profit");
-      } catch (err) { alert("File non valido."); }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
   });
 
   $("btnReset").addEventListener("click", () => {
@@ -1851,7 +1815,7 @@
   }
   function closeScalableModal() { $("scalableModal").style.display = "none"; }
 
-  $("btnImportScalable").addEventListener("click", openScalableModal);
+
   $("btnScalableCancel").addEventListener("click", closeScalableModal);
   $("btnScalablePaste").addEventListener("click", async () => {
     try {
@@ -2234,32 +2198,14 @@
 
   $("allocAmount").addEventListener("input", () => { state.allocAmount = $("allocAmount").value; save(); updateAllocNumbers(); });
 
-  $("btnFetch").addEventListener("click", updatePrices);
+
 
   $("btnUseTotal").addEventListener("click", () => {
     const { total } = holdingsTotal();
-    if (!total) { alert("Nessun valore calcolato. Aggiungi gli ETF e premi «Aggiorna prezzi»."); return; }
+    if (!total) { alert("Nessun valore calcolato. Aggiungi gli ETF e sincronizza il portafoglio Scalable."); return; }
     $("mValue").value = Math.round(total * 100) / 100;
     updatePreview();
     $("mValue").scrollIntoView({ behavior: "smooth", block: "center" });
-  });
-
-  $("proxyUrl").addEventListener("input", () => { state.proxy = $("proxyUrl").value.trim(); save(); });
-
-  $("btnLocalProxy").addEventListener("click", () => {
-    state.proxy = "http://127.0.0.1:8787/fetch?url=";
-    $("proxyUrl").value = state.proxy;
-    save();
-    $("holdStatus").className = "note";
-    $("holdStatus").innerHTML = "Proxy locale impostato. Assicurati che <code>python price_proxy.py</code> sia in esecuzione, poi premi «Aggiorna prezzi».";
-  });
-
-  $("btnClearProxy").addEventListener("click", () => {
-    state.proxy = "";
-    $("proxyUrl").value = "";
-    save();
-    $("holdStatus").className = "note";
-    $("holdStatus").textContent = "Ripristinati i proxy predefiniti.";
   });
 
   // ---- Grafici ----
