@@ -1921,7 +1921,7 @@
   }
   function closeHistoryModal() { $("historyModal").style.display = "none"; }
 
-  $("btnImportHistory").addEventListener("click", openHistoryModal);
+
   $("btnHistoryCancel").addEventListener("click", closeHistoryModal);
   $("historyModal").addEventListener("click", (e) => { if (e.target === $("historyModal")) closeHistoryModal(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("historyModal").style.display === "flex") closeHistoryModal(); });
