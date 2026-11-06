@@ -12,9 +12,11 @@ async function discover(url) {
   try {
     const response = await fetch(url, {
       headers: { Accept: "application/json" },
-      redirect: "error",
+      redirect: "manual",
       signal: AbortSignal.timeout(8000)
     });
+    if (response.status >= 300 && response.status < 400) return { status: response.status, error: "redirect_rejected" };
+    if (!response.ok) return { status: response.status, error: "http_error" };
     const payload = await response.json().catch(() => ({}));
     return {
       status: response.status,
