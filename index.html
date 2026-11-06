@@ -399,14 +399,14 @@
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <span class="hint" id="holdTotalTxt" style="margin:0;">Totale: €0</span>
-        <button id="btnScalablePrices" type="button">Carica prezzi da ChatGPT</button>
+        <button id="btnScalablePrices" type="button">Sincronizza portafoglio Scalable</button>
          <button class="ghost" id="btnCopySyncId" type="button">Copia ID sincronizzazione</button>
          <button class="ghost" id="btnFetch">Prezzi Yahoo (alternativa)</button>
         <button class="ghost" id="btnUseTotal">Usa come valore del mese</button>
       </div>
     </div>
     <div id="holdStatus"></div>
-     <div class="hint" style="margin-top:6px;">Per aggiornare: chiedi a ChatGPT «Sincronizza PAC ETF», poi premi «Carica prezzi da ChatGPT». Devi aver effettuato l’accesso a Google/Firebase. Nessun bridge locale necessario.</div>
+     <div class="hint" style="margin-top:6px;">Per aggiornare: chiedi a ChatGPT «Sincronizza PAC ETF», poi premi «Sincronizza portafoglio Scalable». Devi aver effettuato l’accesso a Google/Firebase. Nessun bridge locale necessario.</div>
     <details style="margin-top:10px;">
       <summary>Impostazioni avanzate (proxy CORS)</summary>
       <label style="margin-top:8px;">URL proxy (antepone l'URL codificato alla richiesta)</label>
@@ -1614,20 +1614,66 @@
         h.scalableQuoteAt = q.timestampUtc;
         updated++;
       }
-      if (updated) {
+      // Le quantità sono uno snapshot autoritativo del broker: non sommare acquisti
+      // alla quantità esistente (potrebbero essere già stati inseriti manualmente).
+      // Chiedi conferma prima di cambiare il portafoglio e crea un backup locale.
+      let positionChanges = 0, newPositions = 0;
+      if (Array.isArray(payload.positions) && payload.positions.length) {
+        const valid = payload.positions.filter(p =>
+          /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(String(p.isin || "").toUpperCase()) &&
+          typeof p.qty === "number" && Number.isFinite(p.qty) && p.qty >= 0);
+        const byIsin = new Map(valid.map(p => [p.isin.toUpperCase(), p]));
+        const differences = valid.filter(p => {
+          const h = state.holdings.find(x => !x.manual && String(x.isin || "").toUpperCase() === p.isin.toUpperCase());
+          return !h || Math.abs(Number(h.qty || 0) - p.qty) > 0.0000001;
+        });
+        if (differences.length) {
+          const summary = differences.slice(0, 12).map(p => {
+            const old = state.holdings.find(x => !x.manual && String(x.isin || "").toUpperCase() === p.isin.toUpperCase());
+            return (p.name || p.isin) + ": " + (old ? old.qty : "nuovo") + " → " + p.qty;
+          }).join("\\n");
+          if (confirm("Scalable segnala " + differences.length + " posizioni diverse.\\n" +
+            summary + "\\n\\nAggiornare le quantità e aggiungere i titoli mancanti? Verrà creato un backup. Il PMC esistente non sarà modificato.")) {
+            backupState();
+            for (const p of differences) {
+              const h = state.holdings.find(x => !x.manual && String(x.isin || "").toUpperCase() === p.isin.toUpperCase());
+              if (h) { h.qty = p.qty; positionChanges++; }
+              else {
+                const q = latest.get(p.isin.toUpperCase());
+                state.holdings.push({ isin: p.isin, name: p.name || p.isin, symbol: "", qty: p.qty,
+                  buyPrice: 0, price: q ? q.price : 0, currency: "EUR", srcPrice: 0,
+                  srcCurrency: "", target: "" });
+                newPositions++;
+              }
+            }
+            // Registro di sola consultazione, identificato dall'ID univoco del broker.
+            // Non altera il modello dei versamenti mensili.
+            if (Array.isArray(payload.transactions)) {
+              state.scalableTransactions = Array.isArray(state.scalableTransactions) ? state.scalableTransactions : [];
+              const seen = new Set(state.scalableTransactions.map(t => t.id));
+              for (const t of payload.transactions) {
+                if (!t.id || seen.has(t.id)) continue;
+                state.scalableTransactions.push(t);
+                seen.add(t.id);
+              }
+            }
+          }
+        }
+      }
+      if (updated || positionChanges || newPositions) {
         save();
         renderHoldings(); renderAllocation(); updatePreview();
       }
       status.className = "note" + (updated ? "" : " warn");
-      status.textContent = updated
-        ? "Prezzi Scalable aggiornati: " + updated + ". Salvati su Firebase se connesso."
+      status.textContent = updated || positionChanges || newPositions
+        ? "Scalable: " + updated + " prezzi, " + positionChanges + " quantità e " + newPositions + " nuovi strumenti. Salvati su Firebase se connesso."
         : "Nessuna nuova quotazione disponibile. Scrivi in ChatGPT: Sincronizza PAC ETF.";
     } catch (error) {
       status.className = "note warn";
       status.textContent = "Prezzi invariati. " + (error.name === "AbortError" ? "Tempo scaduto" : error.message);
     } finally {
       btn.disabled = false;
-      btn.textContent = "Carica prezzi da ChatGPT";
+      btn.textContent = "Sincronizza portafoglio Scalable";
     }
   }
   $("btnScalablePrices").addEventListener("click", syncScalablePrices);
