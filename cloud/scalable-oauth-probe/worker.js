@@ -79,7 +79,8 @@ async function registrationTest(request, env) {
   // Return only short, plain-text diagnostic fields from unsuccessful responses.
   // Do not leak registration access tokens, client secrets or response headers.
   const safeReason = value => typeof value === "string" &&
-    value.length <= 350 && /^[a-zA-Z0-9 .,:'"()_\\/-]+$/.test(value)
+    value.length <= 350 && !value.includes("\\n") && !value.includes("\\r") &&
+    !/[<>{}]/.test(value) && !/bearer|client_secret|access_token|refresh_token/i.test(value)
     ? value : null;
   const accepted = response.ok && typeof body.client_id === "string" && body.client_id.length > 0;
   return json(accepted ? 200 : 502, {
