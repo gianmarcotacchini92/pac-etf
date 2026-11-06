@@ -6,8 +6,10 @@ Il progetto PAC ETF è pubblicato su GitHub Pages e sincronizza già il suo stat
 
 - Il file `cloud/scalable-oauth-probe/worker.js` è presente nel branch di prova.
 - Il Worker Cloudflare `pac-etf-scalable-oauth-probe` è stato caricato.
-- L'endpoint pubblico `workers.dev` del Worker è **disabilitato**; il test HTTP end-to-end non è completato.
+- ✅ L'endpoint pubblico `workers.dev` del Worker è abilitato e il test HTTP `/check` è riuscito: la risorsa protetta risponde HTTP 200 e pubblica `authorization_servers`.
+- ✅ La discovery dell'authorization server restituisce `authorization_endpoint=https://mcp.scalable.capital/authorize`, `token_endpoint=https://mcp.scalable.capital/token`, `registration_endpoint=https://mcp.scalable.capital/register` e PKCE `S256`.
 - Il repository ufficiale Scalable CLI documenta l'uso della API Scalable e il server MCP remoto è raggiungibile tramite ChatGPT.
+- ⬜ Registrazione di client con redirect URI HTTPS, token exchange e accesso alle quotazioni **non ancora verificati**.
 - Un client desktop indipendente [scalable-capital-desktop](https://github.com/suneetk92/scalable-capital-desktop) descrive Dynamic Client Registration, Authorization Code + PKCE S256 e redirect loopback. Questo **non prova** che il redirect HTTPS di un Worker sia già accettato.
 
 ## Criteri da soddisfare prima dell'integrazione
