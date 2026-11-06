@@ -1,5 +1,5 @@
 // PAC ETF price inbox. Quotes are stored in private Cloudflare KV by Firebase UID.
-// No Scalable credentials, orders, quantities or purchase prices are handled here.
+// Authenticated endpoint returns private broker prices, position quantities and trade summaries.
 const PROJECT_ID = "sincro-ai";
 const JWKS_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 const corsOrigin = "https://gianmarcotacchini92.github.io";
@@ -43,6 +43,6 @@ export default {async fetch(request,env) {
   try {uid=await verifyFirebase(auth.slice(7));}catch{return response(401,{error:"invalid_authentication"},origin);}
   const raw=await env.PRICE_INBOX.get("prices:"+uid);
   if(!raw) return response(200,{prices:[],updatedAt:null},origin);
-  try {const payload=JSON.parse(raw);return response(200,{prices:payload.prices||[],updatedAt:payload.updatedAt||null},origin);}
+  try {const payload=JSON.parse(raw);return response(200,{prices:Array.isArray(payload.prices)?payload.prices:[],positions:Array.isArray(payload.positions)?payload.positions:[],transactions:Array.isArray(payload.transactions)?payload.transactions:[],updatedAt:payload.updatedAt||null},origin);}
   catch{return response(502,{error:"invalid_snapshot"},origin);}
 }};
