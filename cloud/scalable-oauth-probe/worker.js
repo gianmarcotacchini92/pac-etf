@@ -75,11 +75,20 @@ async function registrationTest(request, env) {
   if (response.status >= 300 && response.status < 400)
     return json(502, { registration: "redirect_rejected", status: response.status });
   const body = await response.json().catch(() => ({}));
-  return json(200, {
-    registration: response.ok && typeof body.client_id === "string" ? "accepted" : "rejected",
+  // Registration is unauthenticated and the caller is secret-gated.
+  // Return only short, plain-text diagnostic fields from unsuccessful responses.
+  // Do not leak registration access tokens, client secrets or response headers.
+  const safeReason = value => typeof value === "string" &&
+    value.length <= 350 && /^[a-zA-Z0-9 .,:'"()_\\/-]+$/.test(value)
+    ? value : null;
+  const accepted = response.ok && typeof body.client_id === "string" && body.client_id.length > 0;
+  return json(accepted ? 200 : 502, {
+    registration: accepted ? "accepted" : "rejected",
     http_status: response.status,
-    public_client: body.token_endpoint_auth_method === "none",
-    client_id_present: typeof body.client_id === "string" && body.client_id.length > 0,
+    error: accepted ? null : safeReason(body.error),
+    error_description: accepted ? null : safeReason(body.error_description || body.message),
+    public_client: accepted ? body.token_endpoint_auth_method === "none" : null,
+    client_id_present: accepted,
     redirect_uri: REDIRECT_URI
   });
 }
