@@ -405,7 +405,7 @@
       </div>
     </div>
     <div id="holdStatus"></div>
-     <div class="hint" style="margin-top:6px;">La sincronizzazione Scalable richiede il bridge locale attivo sul PC. <a href="https://github.com/gianmarcotacchini92/pac-etf/blob/main/SCALABLE_SYNC.md" target="_blank" rel="noopener noreferrer">Istruzioni per il PC</a>. Dal telefono vengono mostrati gli ultimi prezzi salvati su Firebase.</div>
+     <div class="hint" style="margin-top:6px;">Per aggiornare: scrivi a ChatGPT <b>«Sincronizza PAC ETF»</b>, poi premi <b>Sincronizza Scalable</b>. Richiede l’accesso Google nella sezione Firebase. Nessun JSON o programma sul PC.</div>
     <details style="margin-top:10px;">
       <summary>Impostazioni avanzate (proxy CORS)</summary>
       <label style="margin-top:8px;">URL proxy (antepone l'URL codificato alla richiesta)</label>
@@ -1565,65 +1565,90 @@
     return rate;
   }
 
-  // Prezzi dal broker: nessun token Scalable nel browser, nessuna modifica a qty/buyPrice/target.
-  async function syncScalablePrices() {
+  // ChatGPT legge Scalable; il Worker Cloudflare restituisce la snapshot privata
+  // solo al proprietario autenticato in Firebase. Nessun token Scalable nel browser.
+  const CHATGPT_QUOTE_URL = "https://pac-etf-chatgpt-bridge.gianmarcotacchini.workers.dev/prices";
+  let lastChatGptQuoteAt = 0;
+  async function syncScalablePrices({ silent = false } = {}) {
     const btn = $("btnScalablePrices"), status = $("holdStatus");
-    const selected = state.holdings.filter(h => !h.manual && /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(String(h.isin || "").trim().toUpperCase()));
+    const selected = state.holdings.filter(h => !h.manual &&
+      /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(String(h.isin || "").trim().toUpperCase()));
     const isins = [...new Set(selected.map(h => h.isin.trim().toUpperCase()))];
     if (!isins.length) {
-      status.className = "note warn";
-      status.textContent = "Nessuna posizione con ISIN valido da aggiornare.";
+      if (!silent) { status.className = "note warn"; status.textContent = "Nessuna posizione con ISIN valido."; }
+      return;
+    }
+    if (!cloud.user) {
+      if (!silent) { status.className = "note warn"; status.textContent = "Accedi con Google nella sezione Firebase per ricevere i prezzi da ChatGPT."; }
       return;
     }
     btn.disabled = true;
     btn.textContent = "Sincronizzazione…";
-    status.className = "note";
-    status.textContent = "Lettura quotazioni da Scalable CLI sul PC…";
+    if (!silent) { status.className = "note"; status.textContent = "Recupero delle ultime quotazioni lette da ChatGPT su Scalable…"; }
     try {
+      const token = await cloud.user.getIdToken();
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 120000);
-      let response;
+      const timer = setTimeout(() => ctrl.abort(), 18000);
+      let res;
       try {
-        response = await fetch("http://127.0.0.1:8788/prices?isins=" + encodeURIComponent(isins.join(",")),
-          { method: "GET", cache: "no-store", mode: "cors", signal: ctrl.signal });
+        res = await fetch(CHATGPT_QUOTE_URL, {
+          method: "GET", mode: "cors", cache: "no-store",
+          headers: { Authorization: "Bearer " + token },
+          signal: ctrl.signal
+        });
       } finally { clearTimeout(timer); }
-      if (!response.ok) throw new Error("Bridge non raggiungibile (HTTP " + response.status + ")");
-      const payload = await response.json();
-      if (payload.source !== "scalable-cli" || !Array.isArray(payload.prices))
-        throw new Error("Risposta del bridge non valida");
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.error || "HTTP " + res.status);
+      if (payload.source !== "scalable-chatgpt" || !Array.isArray(payload.prices))
+        throw new Error("Risposta del servizio non valida");
       const quotes = new Map();
       for (const q of payload.prices) {
-        if (!isins.includes(q.isin) || q.currency !== "EUR" ||
-            typeof q.price !== "number" || !Number.isFinite(q.price) || q.price <= 0)
-          throw new Error("Quotazione Scalable non valida");
-        if (quotes.has(q.isin)) throw new Error("ISIN duplicato nella risposta");
-        quotes.set(q.isin, q.price);
+        const isin = String(q.isin || "").toUpperCase();
+        const age = Date.now() - Date.parse(q.timestampUtc);
+        if (!isins.includes(isin) || q.currency !== "EUR" ||
+            typeof q.price !== "number" || !Number.isFinite(q.price) || q.price <= 0 ||
+            !Number.isFinite(age) || age < -300000 || age > 14 * 86400000) continue;
+        if (!quotes.has(isin)) quotes.set(isin, q);
       }
-      if (!quotes.size) throw new Error("Nessun prezzo Scalable disponibile. Controlla accesso CLI e sessione.");
-      let updated = 0;
+      if (!quotes.size) {
+        if (!silent) { status.className = "note warn"; status.textContent =
+          "Nessuna quotazione disponibile: scrivi a ChatGPT «Sincronizza PAC ETF» e riprova."; }
+        return;
+      }
+      let changed = 0, matched = 0, newest = 0;
       for (const h of selected) {
-        const price = quotes.get(h.isin.trim().toUpperCase());
-        if (price === undefined) continue;
-        h.price = price;
+        const q = quotes.get(h.isin.trim().toUpperCase());
+        if (!q) continue;
+        matched++;
+        newest = Math.max(newest, Date.parse(q.timestampUtc));
+        if (h.price === q.price && h.currency === "EUR") continue;
+        h.price = q.price;
         h.currency = "EUR";
         h.srcPrice = 0;
         h.srcCurrency = "";
-        updated++;
+        changed++;
       }
-      save();
-      renderHoldings();
-      renderAllocation();
-      updatePreview();
-      const errors = Array.isArray(payload.errors) ? payload.errors : [];
-      status.className = "note" + (errors.length || updated < selected.length ? " warn" : "");
-      status.textContent = "Scalable: aggiornati " + updated + " prezzi su " + selected.length +
-        ". " + (errors.length ? "Non aggiornati: " + errors.map(e => e.isin + " (" + e.error + ")").join("; ") : "Dati salvati e sincronizzati con Firebase se connesso.") +
-        " Ultima richiesta: " + new Date().toLocaleTimeString("it-IT");
-    } catch (err) {
-      status.className = "note warn";
-      status.textContent = "Prezzi invariati. Sincronizzazione non riuscita: " +
-        (err.name === "AbortError" ? "tempo scaduto" : err.message) +
-        ". Avvia il bridge sul PC e verifica l'accesso Scalable CLI.";
+      if (changed) {
+        save();
+        renderHoldings();
+        renderAllocation();
+        updatePreview();
+      }
+      lastChatGptQuoteAt = Date.now();
+      if (!silent) {
+        status.className = "note" + (matched < selected.length ? " warn" : "");
+        status.textContent = "Scalable via ChatGPT: " + matched + " titoli trovati, " + changed +
+          " prezzi modificati. Quotazioni del " + new Date(newest).toLocaleString("it-IT") +
+          ". " + (matched < selected.length ? "Alcuni ISIN non sono presenti nella snapshot. " : "") +
+          "Dati salvati e sincronizzati su Firebase.";
+      }
+    } catch (e) {
+      if (!silent) {
+        status.className = "note warn";
+        status.textContent = "Prezzi invariati: " +
+          (e.name === "AbortError" ? "tempo scaduto" : e.message) +
+          ". Verifica l'accesso Google e chiedi a ChatGPT «Sincronizza PAC ETF».";
+      }
     } finally {
       btn.disabled = false;
       btn.textContent = "Sincronizza Scalable";
