@@ -32,3 +32,11 @@ Non distribuire una sincronizzazione fittizia e non collegare il pulsante della 
 - https://github.com/suneetk92/scalable-capital-desktop
 
 La versione pubblicata dell'app non viene modificata da questo branch.
+
+## Test registrazione client HTTPS (nuovo)
+
+È stato aggiunto `registration-test.js`, **non distribuito** in produzione. Il test effettua POST al solo endpoint Scalable ufficiale `https://mcp.scalable.capital/register` con callback HTTPS del nostro Worker e scope `openid profile offline_access`.
+
+Per evitare registrazioni abusive non espone una route anonima: richiede il segreto Cloudflare `REGISTRATION_TEST_KEY` come header Bearer. Se manca il segreto, risponde 503 senza contattare Scalable. La risposta filtra qualsiasi informazione sensibile e comunica solo se la registrazione è stata accettata e se il server ha restituito un identificativo client.
+
+**Il test non è stato ancora eseguito:** l'accettazione dell'URI HTTPS rimane da verificare. Non attivare login, callback OAuth o salvataggio token fino a quel momento. Conservare il Worker originale di sola discovery sul percorso pubblico.
