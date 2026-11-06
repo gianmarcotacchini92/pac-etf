@@ -1646,18 +1646,18 @@
                 newPositions++;
               }
             }
-            // Registro di sola consultazione, identificato dall'ID univoco del broker.
-            // Non altera il modello dei versamenti mensili.
-            if (Array.isArray(payload.transactions)) {
-              state.scalableTransactions = Array.isArray(state.scalableTransactions) ? state.scalableTransactions : [];
-              const seen = new Set(state.scalableTransactions.map(t => t.id));
-              for (const t of payload.transactions) {
-                if (!t.id || seen.has(t.id)) continue;
-                state.scalableTransactions.push(t);
-                seen.add(t.id);
-              }
-            }
+
           }
+        }
+      }
+      // Registro idempotente delle operazioni, anche quando le quantità coincidono.
+      if (Array.isArray(payload.transactions)) {
+        state.scalableTransactions = Array.isArray(state.scalableTransactions) ? state.scalableTransactions : [];
+        const seen = new Set(state.scalableTransactions.map(t => t.id));
+        for (const t of payload.transactions) {
+          if (!t.id || seen.has(t.id)) continue;
+          state.scalableTransactions.push(t);
+          seen.add(t.id);
         }
       }
       if (updated || positionChanges || newPositions) {
