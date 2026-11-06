@@ -1,0 +1,38 @@
+name: Verify PAC ETF ChatGPT quote bridge
+
+on:
+  push:
+    branches:
+      - feat/chatgpt-scalable-sync
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Worker and app syntax
+        run: |
+          cp cloud/chatgpt-bridge/worker.js /tmp/pac-etf-bridge.mjs
+          node --check /tmp/pac-etf-bridge.mjs
+          node - <<'NODE'
+          const fs = require("fs");
+          const html = fs.readFileSync("index.html", "utf8");
+          const m = html.match(/<script>\s*([\s\S]*?)<\/script>/);
+          if (!m) throw new Error("app script not found");
+          new Function(m[1]);
+          console.log("App JavaScript syntax OK");
+          NODE
+      - name: Public health check (no sensitive data)
+        run: |
+          set -euo pipefail
+          BASE="https://pac-etf-chatgpt-bridge.gianmarcotacchini.workers.dev"
+          curl --fail --silent --show-error --max-time 20 "$BASE/health" | python3 -c 'import sys,json; j=json.load(sys.stdin); assert j["status"] == "ready"'
+          HTTP="$(curl --silent --output /tmp/no-auth.json --write-out '%{http_code}' --max-time 20 "$BASE/prices")"
+          test "$HTTP" = "401"
+          python3 -c 'import json; j=json.load(open("/tmp/no-auth.json")); assert j["error"] == "firebase_login_required"'
+          echo "Endpoint protected against anonymous reads"
