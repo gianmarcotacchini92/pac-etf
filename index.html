@@ -400,6 +400,7 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <span class="hint" id="holdTotalTxt" style="margin:0;">Totale: €0</span>
         <button id="btnScalablePrices" type="button">Carica prezzi da ChatGPT</button>
+         <button class="ghost" id="btnCopySyncId" type="button">Copia ID sincronizzazione</button>
          <button class="ghost" id="btnFetch">Prezzi Yahoo (alternativa)</button>
         <button class="ghost" id="btnUseTotal">Usa come valore del mese</button>
       </div>
@@ -1630,6 +1631,23 @@
     }
   }
   $("btnScalablePrices").addEventListener("click", syncScalablePrices);
+  $("btnCopySyncId").addEventListener("click", async () => {
+    const status = $("holdStatus");
+    if (!cloud.user) {
+      status.className = "note warn";
+      status.textContent = "Effettua prima l'accesso Google/Firebase.";
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(cloud.user.uid);
+      status.className = "note";
+      status.textContent = "ID sincronizzazione copiato. Incollalo in ChatGPT per associare i prezzi al tuo account Firebase.";
+    } catch {
+      status.className = "note warn";
+      status.textContent = "Impossibile copiare l'ID. Controlla i permessi degli appunti.";
+    }
+  });
+
 
   async function updatePrices() {
     const status = $("holdStatus");
