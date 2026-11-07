@@ -622,6 +622,55 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .month-history table tbody tr.history-entry.expanded td:nth-child(9){grid-column:2}
 .month-history table tbody tr.history-entry.expanded td:nth-child(11){grid-column:1/-1}
 }
+
+/* Rendimenti — focused analytics view */
+.returns-layout{display:grid;grid-template-columns:minmax(0,1.38fr) minmax(330px,1fr);gap:19px;margin-bottom:20px;align-items:stretch}
+.returns-primary,.returns-side{border:1px solid #e5ebf4;background:#fff;border-radius:19px;box-shadow:0 6px 26px #263d6110;min-width:0}
+.returns-primary{padding:30px 32px}
+.returns-primary-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.returns-kicker{display:block;font-size:10px;letter-spacing:.14em;color:#8190a7;font-weight:800}
+.returns-primary h3,.returns-side h3{font-size:19px;font-weight:780;letter-spacing:-.035em;margin:8px 0 0;color:#263551}
+.returns-period-pill{background:#edf3ff;border:1px solid #dce6fa;border-radius:99px;font-size:11px;font-weight:700;color:#4766a6;padding:7px 11px;white-space:nowrap}
+.returns-main-figure{font-weight:850;font-size:clamp(43px,5vw,64px);letter-spacing:-.065em;margin:29px 0 7px;line-height:1.15;font-variant-numeric:tabular-nums;color:#213856}
+.returns-main-figure.pos{color:#07956f}.returns-main-figure.neg{color:#d35068}
+.returns-main-subtitle{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#7c8aa0;font-size:12px}
+.returns-percent{background:#eef2f8;color:#61738c;padding:6px 10px;border-radius:7px;font-weight:800;font-variant-numeric:tabular-nums}
+.returns-percent.positive{background:#e8f9f0;color:#058763}
+.returns-percent.negative{background:#fff0f3;color:#c24461}
+.returns-divider{border-top:1px solid #e9edf5;margin:30px 0 22px}
+.returns-balance-head{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#7d8aa1;align-items:center}
+.returns-balance-head strong{color:#273a58;font-size:22px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.returns-stacked-bar{height:13px;background:#e8eef7;border-radius:99px;overflow:hidden;display:flex;margin:15px 0 22px}
+.returns-stacked-bar span:first-child{background:#5474ed;height:100%}
+.returns-stacked-bar span:last-child{background:#9dd4de;height:100%}
+.returns-legend{display:grid;gap:13px}
+.returns-legend>div{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:9px;align-items:center;color:#7f8ca2;font-size:12px}
+.returns-legend b{font-size:13px;color:#293b58;font-variant-numeric:tabular-nums}
+.returns-dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.returns-side{padding:28px 27px;display:flex;flex-direction:column;gap:17px}
+.returns-side-heading p{font-size:12px;line-height:1.5;color:#8090a4;margin:8px 0 0}
+.returns-metric{background:#f7f9fe;border:1px solid #ebeff7;border-radius:13px;padding:17px;min-width:0}
+.returns-metric>span{color:#77879d;font-size:11px;display:block;line-height:1.45}
+.returns-metric>strong{font-size:28px;font-weight:820;letter-spacing:-.04em;display:block;color:#2a4268;margin-top:8px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.returns-metric>strong.pos{color:#08976d}.returns-metric>strong.neg{color:#d35068}
+.returns-metric small{font-size:11px;color:#90a0b3;line-height:1.4;display:block;margin-top:7px}
+.returns-metric-lead{background:#edf3ff;border-color:#e0e8fd}
+.returns-metric-lead strong{font-size:36px}
+.returns-small-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.returns-small-metrics .returns-metric>strong{font-size:22px}
+.returns-history-line{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#78879c;padding:0 3px}
+.returns-history-line strong{color:#334967;text-align:right}
+.returns-methodology{border-top:1px solid #edf0f6;padding-top:14px;margin-top:auto}
+.returns-methodology summary{cursor:pointer;color:#4263d4;font-size:12px;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.returns-methodology summary::-webkit-details-marker{display:none}
+.returns-methodology p{font-size:12px;color:#718198;line-height:1.6;margin:12px 0 0}
+@media(max-width:1100px){.returns-layout{grid-template-columns:1fr}}
+@media(max-width:650px){.returns-layout{gap:13px}.returns-primary,.returns-side{padding:21px 18px;border-radius:16px}
+.returns-primary h3,.returns-side h3{font-size:17px}.returns-main-figure{font-size:44px;margin:21px 0 9px}
+.returns-divider{margin:24px 0 18px}.returns-balance-head strong{font-size:19px}
+.returns-metric-lead strong{font-size:31px}.returns-small-metrics .returns-metric{padding:13px}
+.returns-small-metrics .returns-metric strong{font-size:21px}
+.returns-period-pill{font-size:10px;padding:5px 8px}}
 </style>
 </head>
 <body>
@@ -770,29 +819,34 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   </div>
 
   <section class="section-intro" data-tab="riepilogo"><div class="eyebrow">ANALISI DEL PORTAFOGLIO</div><h2>Rendimenti e patrimonio.</h2><p>Il rendimento calcolato a partire dallo storico mensile registrato.</p></section>
-  <!-- Riepilogo -->
-  <div class="card yield-summary" style="margin-bottom:16px;" data-tab="riepilogo">
-    <h2><span class="ico">◈</span> Composizione del patrimonio</h2>
-    <div class="grid" style="margin-bottom:0;">
-      <div class="stat"><div class="k">Valore portafoglio</div><div class="v neu" id="sVal">€0</div></div>
-      <div class="stat"><div class="k">Liquidità cumulata</div><div class="v neu" id="sLiq">€0</div></div>
-      <div class="stat"><div class="k">Patrimonio totale</div><div class="v neu" id="sTot">€0</div></div>
-      <div class="stat"><div class="k">Capitale versato</div><div class="v neu" id="sInv">€0</div></div>
-      <div class="stat"><div class="k">Performance totale</div><div class="v neu" id="sPerf">€0</div></div>
+  <!-- Riepilogo rendimento, vista analitica -->
+  <section class="returns-layout" data-tab="riepilogo">
+    <div class="returns-primary">
+      <div class="returns-primary-top"><div><span class="returns-kicker">RISULTATO STORICO</span><h3>Il tuo risultato complessivo</h3></div><span class="returns-period-pill" id="returnsHistoryPeriod">Storico mensile</span></div>
+      <div class="returns-main-figure" id="sPerf">€0</div>
+      <div class="returns-main-subtitle"><span class="returns-percent" id="returnsProfitPct">—</span><span>rispetto al capitale versato registrato</span></div>
+      <div class="returns-divider"></div>
+      <div class="returns-balance-head"><span>Composizione del patrimonio storico</span><strong id="sTot">€0</strong></div>
+      <div class="returns-stacked-bar" role="img" aria-label="Composizione tra valore portafoglio e liquidità">
+        <span id="returnsPortfolioBar"></span><span id="returnsCashBar"></span>
+      </div>
+      <div class="returns-legend">
+        <div><span class="returns-dot" style="background:#5474ed"></span><span>Portafoglio</span><b id="sVal">€0</b></div>
+        <div><span class="returns-dot" style="background:#9dd4de"></span><span>Liquidità</span><b id="sLiq">€0</b></div>
+        <div><span class="returns-dot" style="background:#dce6f4"></span><span>Capitale versato</span><b id="sInv">€0</b></div>
+      </div>
     </div>
-  </div>
-
-  <!-- Rendimento annualizzato -->
-  <div class="card yield-metrics" style="margin-bottom:16px;" data-tab="riepilogo">
-    <h2><span class="ico">↗</span> Indicatori di rendimento</h2>
-    <div class="hint">I mesi registrati sono considerati consecutivi (cadenza mensile del PAC). Il <b>TWR</b> misura la bravura degli strumenti (indipendente da quando versi); l'<b>XIRR</b> (o TIR) è il rendimento reale annuo dei <i>tuoi</i> versamenti, tenendo conto di quanto e quando hai messo.</div>
-    <div class="grid" style="margin-bottom:0;">
-      <div class="stat"><div class="k">Rendimento reale annuo (XIRR)</div><div class="v neu" id="rXirr">—</div></div>
-      <div class="stat"><div class="k">TWR annualizzato</div><div class="v neu" id="rTwrA">—</div></div>
-      <div class="stat"><div class="k">TWR totale</div><div class="v neu" id="rTwrT">—</div></div>
-      <div class="stat"><div class="k">Periodo</div><div class="v neu" id="rSpan">—</div></div>
+    <div class="returns-side">
+      <div class="returns-side-heading"><span class="returns-kicker">METRICHE DI RENDIMENTO</span><h3>Come sta andando?</h3><p>Stime derivate dallo storico mensile, non dal saldo in tempo reale.</p></div>
+      <div class="returns-metric returns-metric-lead"><span>Rendimento annualizzato (XIRR)</span><strong id="rXirr">—</strong><small>Stima basata sulle date mensili dei versamenti.</small></div>
+      <div class="returns-small-metrics">
+        <div class="returns-metric"><span>TWR annualizzato</span><strong id="rTwrA">—</strong></div>
+        <div class="returns-metric"><span>TWR complessivo</span><strong id="rTwrT">—</strong></div>
+      </div>
+      <div class="returns-history-line"><span>Periodo analizzato</span><strong id="rSpan">—</strong></div>
+      <details class="returns-methodology"><summary>Come leggere questi risultati <span aria-hidden="true">⌄</span></summary><p><b>XIRR</b> e <b>TWR</b> sono attualmente approssimazioni costruite sui dati mensili registrati. Non rappresentano ancora un rendimento riconciliato su tutti i movimenti reali di Scalable e le loro date effettive. Il TWR è sensibile alla frequenza e alla qualità delle valutazioni disponibili.</p></details>
     </div>
-  </div>
+  </section>
 
   <!-- Proiezione verso l'obiettivo -->
   <div class="card plan-goal" style="margin-bottom:16px;" data-tab="piano">
@@ -1297,6 +1351,22 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     const sp = $("sPerf");
     sp.textContent = eur(totalPerf);
     sp.className = "v " + (totalPerf > 0 ? "pos" : totalPerf < 0 ? "neg" : "neu");
+    const returnPercent=document.getElementById("returnsProfitPct");
+    const returnPeriod=document.getElementById("returnsHistoryPeriod");
+    const invested=d.contributed;
+    if(returnPercent){
+      const pct=invested>0?(totalPerf/invested)*100:null;
+      returnPercent.textContent=pct===null?"Dato non disponibile":(pct>=0?"+":"")+pct.toFixed(1).replace(".",",")+"%";
+      returnPercent.className="returns-percent "+(pct===null?"":pct>=0?"positive":"negative");
+    }
+    if(returnPeriod)returnPeriod.textContent=d.rows.length+" mesi registrati";
+    const portfolioBar=document.getElementById("returnsPortfolioBar");
+    const cashBar=document.getElementById("returnsCashBar");
+    if(portfolioBar&&cashBar){
+      const portfolio=Math.max(0,val),cash=Math.max(0,d.liq),total=portfolio+cash;
+      portfolioBar.style.width=(total?portfolio/total*100:0)+"%";
+      cashBar.style.width=(total?cash/total*100:0)+"%";
+    }
 
     // history
     const historyCount=document.getElementById("historyCount");
