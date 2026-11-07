@@ -395,6 +395,7 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
 .tabbar{bottom:0;width:100%;max-width:none;border-radius:15px 15px 0 0;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
 .chart-heading{align-items:flex-start;flex-direction:column}.chart-mode-select{max-width:none;width:100%}
 }
+.rebalance-tools{border-top:1px solid #e8edf5;padding-top:14px;margin-top:14px}.rebalance-tools>summary{cursor:pointer;color:#4263eb;font-size:12px;font-weight:750}.rebalance-tools[open]>label{margin-top:14px}.rebalance-tools[open] .table-wrap{margin-top:10px}
 </style>
 </head>
 <body>
@@ -488,6 +489,7 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
       </div>
       <div style="flex:1;min-width:280px;">
         <div id="pieLegend" style="margin-bottom:14px;"></div>
+        <details class="rebalance-tools"><summary>Strumenti di ribilanciamento</summary>
         <label>Importo da investire per il ribilanciamento (€)</label>
         <input type="number" id="allocAmount" step="10" placeholder="es. 150" style="max-width:200px;" />
         <div class="hint">Imposta la % obiettivo di ciascun ETF (somma consigliata 100%): la tabella calcola quanto versare su ognuno per avvicinarti all'allocazione desiderata usando solo nuovi acquisti.</div>
@@ -500,6 +502,7 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
           </table>
         </div>
         <div class="hint" id="allocSum" style="margin-top:8px;"></div>
+        </details>
       </div>
     </div>
   </div>
