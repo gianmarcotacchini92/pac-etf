@@ -660,6 +660,48 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 @media(max-width:370px){
   .returns-small-metrics{grid-template-columns:minmax(0,1fr)}
 }
+
+/* Piano — goal-first financial planning */
+.plan-goal-redesign{padding:0!important;overflow:hidden;border-radius:19px!important;background:#fff!important}
+.plan-headline{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:28px 31px 16px}
+.plan-headline h2{font-size:25px;letter-spacing:-.045em;margin:7px 0 5px}
+.plan-headline p{color:#8290a4;font-size:12px;line-height:1.6;margin:0}
+.plan-milestone-icon{display:flex;align-items:center;justify-content:center;width:48px;height:48px;flex:0 0 48px;border-radius:14px;background:#edf2ff;color:#5170e7;font-size:30px}
+.plan-hero-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(195px,.75fr);gap:20px;padding:10px 31px 28px}
+.plan-hero-main{background:#f6f8ff;border:1px solid #e5ebfb;border-radius:15px;padding:24px;min-width:0}
+.plan-hero-label{display:block;font-size:12px;color:#7b8aa3;font-weight:650}
+.plan-hero-main>strong{display:block;font-size:clamp(30px,4vw,44px);color:#2d4771;letter-spacing:-.055em;margin:9px 0 24px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.plan-progress-track{height:12px;border-radius:999px;background:#dfe7f5;overflow:hidden}
+.plan-progress-track>div{height:100%;width:0;background:linear-gradient(90deg,#5474ec,#87b2fa);border-radius:inherit;transition:width .25s ease}
+.plan-progress-labels{display:flex;gap:8px;justify-content:space-between;margin-top:10px;color:#8292a8;font-size:11px}
+.plan-progress-labels span:first-child{font-weight:800;color:#506cd5}
+.plan-hero-aside{display:grid;grid-template-rows:1fr 1fr;gap:12px}
+.plan-hero-aside>div{background:#f9fbff;border:1px solid #e9edf5;border-radius:13px;padding:18px;min-width:0}
+.plan-hero-aside span{font-size:11px;color:#8390a4;display:block;margin-bottom:9px}
+.plan-hero-aside strong{font-size:21px;letter-spacing:-.035em;color:#2c4060;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.plan-controls{padding:24px 31px 27px;border-top:1px solid #edf0f5;background:#fff}
+.plan-controls-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}
+.plan-controls-title strong{color:#273a59;font-size:15px}
+.plan-controls-title>span{font-size:11px;color:#8291a7}
+.plan-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.plan-fields>div{min-width:0}
+.plan-fields label{font-size:11px;line-height:1.5;letter-spacing:0;text-transform:none;color:#61728d}
+.plan-fields input{width:100%;max-width:none!important;min-width:0;margin:6px 0 0!important;font-size:16px;height:45px}
+.plan-scenario-note{padding:14px 16px;border-radius:11px;background:#edf3ff;border:1px solid #e2eafd;color:#526783;line-height:1.6;font-size:12px;margin-top:17px}
+.plan-scenario-note.warn{background:#fff5e8;color:#a36d26;border-color:#ffe1b8}
+.plan-disclaimer{font-size:11px;line-height:1.6;color:#9aa5b5;margin:12px 0 0}
+.plan-config,.plan-crash{padding:25px 29px!important;border-radius:17px!important}
+.plan-config h2,.plan-crash h2{font-size:19px;letter-spacing:-.035em;margin:0 0 9px}
+.plan-config-description,.plan-crash-description{font-size:12px;line-height:1.6;color:#8090a6;margin:0 0 19px}
+.plan-config .row2,.plan-config .row3{gap:14px}
+.plan-config .row2>div,.plan-config .row3>div{min-width:0}
+.plan-config label,.plan-crash label{font-size:11px;text-transform:none;letter-spacing:0;line-height:1.5}
+.plan-config input,.plan-crash input{font-size:16px;max-width:100%;min-width:0}
+.plan-crash #crashInfo{font-size:12px;line-height:1.6;margin-bottom:16px}
+.plan-crash #crashLevels{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.plan-crash .lvl{min-width:0;border-radius:12px}
+@media(max-width:950px){.plan-hero-grid{grid-template-columns:1fr}.plan-hero-aside{grid-template-columns:1fr 1fr;grid-template-rows:none}.plan-crash #crashLevels{grid-template-columns:1fr}.plan-fields{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.plan-headline{padding:21px 18px 12px}.plan-headline h2{font-size:21px}.plan-milestone-icon{display:none}.plan-hero-grid{padding:8px 18px 19px;gap:11px}.plan-hero-main{padding:19px}.plan-hero-main>strong{font-size:34px;margin:7px 0 20px}.plan-hero-aside{grid-template-columns:1fr 1fr;gap:9px}.plan-hero-aside>div{padding:12px}.plan-hero-aside strong{font-size:16px}.plan-controls{padding:18px}.plan-controls-title{display:block}.plan-controls-title>span{display:block;margin-top:5px}.plan-fields{grid-template-columns:1fr}.plan-config,.plan-crash{padding:20px 18px!important}.plan-config .row2,.plan-config .row3,.plan-crash .row3{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -678,36 +720,6 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   </nav>
 
   <section class="section-intro" data-tab="piano"><div class="eyebrow">STRATEGIA PAC</div><h2>Il tuo piano, con metodo.</h2><p>Obiettivi, regole di investimento e gestione della liquidità.</p></section>
-  <!-- Stato iniziale + config -->
-  <div class="card plan-config" data-tab="piano">
-      <h2><span class="ico">⚙</span> Parametri del PAC</h2>
-      <div class="row2">
-        <div>
-          <label>Valore portafoglio iniziale (€)</label>
-          <input type="number" id="initValue" step="0.01" value="0" />
-        </div>
-        <div>
-          <label>Liquidità iniziale (€)</label>
-          <input type="number" id="initLiq" step="0.01" value="0" />
-        </div>
-      </div>
-      <div class="row3">
-        <div>
-          <label>Budget mensile (€)</label>
-          <input type="number" id="cfgBudget" step="1" value="150" />
-        </div>
-        <div>
-          <label>Crescita target (€)</label>
-          <input type="number" id="cfgTarget" step="1" value="150" />
-        </div>
-        <div>
-          <label>Quota minima (€)</label>
-          <input type="number" id="cfgMin" step="1" value="100" />
-        </div>
-      </div>
-      <div class="hint">La quota minima è quanto investi sempre quando la performance è già forte (il resto del budget va in liquidità).</div>
-    </div>
-
   <section class="section-intro" data-tab="mese"><div class="eyebrow">STORICO VERSAMENTI</div><h2>Movimenti e registrazioni.</h2><p>Registra un nuovo mese e consulta tutti i valori storici.</p></section>
   <!-- Nuovo mese -->
   <div class="card month-entry" data-tab="mese">
@@ -837,30 +849,67 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     </div>
   </section>
 
-  <!-- Proiezione verso l'obiettivo -->
-  <div class="card plan-goal" style="margin-bottom:16px;" data-tab="piano">
-    <h2><span class="ico">🎯</span> Proiezione verso l'obiettivo</h2>
-    <div class="row3">
-      <div>
-        <label>Obiettivo patrimonio (€)</label>
-        <input type="number" id="projGoal" step="1000" placeholder="es. 100000" />
+  <!-- Obiettivo in primo piano -->
+  <div class="card plan-goal plan-goal-redesign" data-tab="piano">
+    <div class="plan-headline"><div><div class="returns-kicker">IL TUO TRAGUARDO</div><h2>Verso il tuo obiettivo</h2><p>Una proiezione indicativa costruita sul patrimonio storico e sui parametri che scegli.</p></div><span class="plan-milestone-icon">◎</span></div>
+    <div class="plan-hero-grid">
+      <div class="plan-hero-main">
+        <span class="plan-hero-label">Patrimonio registrato</span>
+        <strong id="planCurrent">—</strong>
+        <div class="plan-progress-track" role="progressbar" aria-label="Avanzamento verso l'obiettivo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="planProgress"><div id="planProgressFill"></div></div>
+        <div class="plan-progress-labels"><span id="planProgressPct">Obiettivo da impostare</span><span id="planTargetLabel">—</span></div>
       </div>
-      <div>
-        <label>Rendimento annuo ipotizzato (%)</label>
-        <input type="number" id="projRate" step="0.5" placeholder="es. 5" />
-      </div>
-      <div>
-        <label>Versamento mensile (€)</label>
-        <input type="number" id="projMonthly" step="10" placeholder="auto" />
+      <div class="plan-hero-aside">
+        <div><span>Ancora da raggiungere</span><strong id="planRemaining">—</strong></div>
+        <div><span>Traguardo stimato</span><strong id="planEstimatedDate">—</strong></div>
       </div>
     </div>
-    <div class="note" id="projInfo" style="margin-top:6px;">Imposta un obiettivo per vedere la stima.</div>
+    <div class="plan-controls">
+      <div class="plan-controls-title"><strong>Personalizza lo scenario</strong><span>I valori si aggiornano automaticamente</span></div>
+      <div class="plan-fields">
+        <div><label for="projGoal">Obiettivo patrimonio (€)</label><input type="number" id="projGoal" step="1000" placeholder="es. 100000" /></div>
+        <div><label for="projMonthly">Versamento mensile (€)</label><input type="number" id="projMonthly" step="10" placeholder="Auto dallo storico" /></div>
+        <div><label for="projRate">Rendimento ipotizzato (% annuo)</label><input type="number" id="projRate" step="0.5" placeholder="5" /></div>
+      </div>
+      <div class="plan-scenario-note" id="projInfo">Imposta un obiettivo per vedere la stima.</div>
+      <p class="plan-disclaimer">Simulazione, non previsione: rendimento costante ipotizzato, versamenti regolari e nessuna garanzia sui risultati futuri.</p>
+    </div>
   </div>
+
+  <!-- Stato iniziale + config -->
+  <div class="card plan-config" data-tab="piano">
+      <h2><span class="ico">⚙</span> Le regole del tuo PAC</h2><p class="plan-config-description">Imposta il budget ricorrente e le regole automatiche che guidano i movimenti mensili.</p>
+      <div class="row2">
+        <div>
+          <label>Valore portafoglio iniziale (€)</label>
+          <input type="number" id="initValue" step="0.01" value="0" />
+        </div>
+        <div>
+          <label>Liquidità iniziale (€)</label>
+          <input type="number" id="initLiq" step="0.01" value="0" />
+        </div>
+      </div>
+      <div class="row3">
+        <div>
+          <label>Budget mensile (€)</label>
+          <input type="number" id="cfgBudget" step="1" value="150" />
+        </div>
+        <div>
+          <label>Crescita target (€)</label>
+          <input type="number" id="cfgTarget" step="1" value="150" />
+        </div>
+        <div>
+          <label>Quota minima (€)</label>
+          <input type="number" id="cfgMin" step="1" value="100" />
+        </div>
+      </div>
+      <div class="hint">La quota minima è quanto investi sempre quando la performance è già forte (il resto del budget va in liquidità).</div>
+    </div>
 
   <!-- Punti d'ingresso crolli -->
   <div class="card plan-crash" style="margin-bottom:16px;" data-tab="piano">
-    <h2><span class="ico">↘</span> Riserva per le correzioni di mercato</h2>
-    <div class="hint">Le percentuali dividono la <b>liquidità di riserva</b> (la liquidità attuale) tra le tre soglie e <b>devono sommare a 100%</b>. Riserva la quota maggiore ai drawdown più profondi: ogni importo è calcolato sulla riserva iniziale, così i grandi cali ricevono sempre la fetta più grande anche dopo aver già investito nei primi scaglioni.</div>
+    <h2><span class="ico">↘</span> Piano per le correzioni di mercato</h2>
+    <p class="plan-crash-description">Definisci come distribuire la liquidità in tre livelli di ribasso. Le percentuali devono sommare a <b>100%</b> e vengono calcolate sulla riserva iniziale, non sul saldo dopo ciascun livello.</p>
     <div class="row3" style="margin-bottom:14px;">
       <div>
         <label>Soglia 1 (%) → % riserva</label>
@@ -1230,15 +1279,27 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     const rate = state.projRate === "" || state.projRate == null ? 5 : num(state.projRate);
     const startPatr = d.rows.length ? d.rows[d.rows.length - 1].patr : (num(state.initValue) + num(state.initLiq));
     const monthly = state.projMonthly === "" || state.projMonthly == null ? avgMonthlyDeposit(d) : num(state.projMonthly);
-    if (!goal || goal <= 0) { info.className = "note"; info.innerHTML = "Imposta un obiettivo per vedere la stima."; return; }
-    if (goal <= startPatr) { info.className = "note"; info.innerHTML = "🎉 Obiettivo già raggiunto! Patrimonio attuale <b>" + eur(startPatr) + "</b>."; return; }
+    const setPlanText=(id,text)=>{const el=$(id);if(el)el.textContent=text;};
+    const pct=goal>0?Math.min(100,Math.max(0,startPatr/goal*100)):0;
+    setPlanText("planCurrent",eur(startPatr));
+    setPlanText("planRemaining",goal>0?eur(Math.max(0,goal-startPatr)):"—");
+    setPlanText("planTargetLabel",goal>0?eur(goal):"Imposta un importo");
+    setPlanText("planProgressPct",goal>0?pct.toFixed(1).replace(".",",")+"% completato":"Imposta un obiettivo");
+    setPlanText("planEstimatedDate","—");
+    const progressBar=$("planProgress"),progressFill=$("planProgressFill");
+    if(progressBar)progressBar.setAttribute("aria-valuenow",String(Math.round(pct)));
+    if(progressFill)progressFill.style.width=pct+"%";
+
+    if (!goal || goal <= 0) { info.className = "plan-scenario-note"; info.innerHTML = "Inserisci un obiettivo per attivare la proiezione."; return; }
+    if (goal <= startPatr) { setPlanText("planEstimatedDate","Raggiunto"); info.className = "plan-scenario-note"; info.innerHTML = "Obiettivo già raggiunto secondo lo storico registrato."; return; }
     const m = monthsToGoal(startPatr, monthly, rate, goal);
     const monTxt = "versando <b>" + eur(monthly) + "/mese</b> con un rendimento ipotizzato del <b>" + rate.toFixed(1).replace(".", ",") + "%/anno</b>";
-    if (m == null) { info.className = "note warn"; info.innerHTML = "Con questi parametri l'obiettivo di <b>" + eur(goal) + "</b> non viene raggiunto entro 100 anni. Aumenta il versamento mensile o il rendimento ipotizzato."; return; }
+    if (m == null) { info.className = "plan-scenario-note warn"; info.textContent = "Con questi parametri il traguardo non viene raggiunto entro il limite di simulazione (100 anni)."; return; }
     const date = new Date(); date.setMonth(date.getMonth() + m);
     const dtxt = date.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
     const yrs = m / 12;
-    info.className = "note";
+    setPlanText("planEstimatedDate",dtxt);
+    info.className = "plan-scenario-note";
     info.innerHTML = "Partendo da <b>" + eur(startPatr) + "</b> e " + monTxt + ", raggiungi l'obiettivo di <b>" + eur(goal) +
       "</b> tra <b>" + m + " mesi</b> (≈ " + yrs.toFixed(1).replace(".", ",") + " anni), verso <b>" + dtxt + "</b>.";
   }
