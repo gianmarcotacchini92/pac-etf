@@ -1016,7 +1016,8 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   }, null, 2);
   const CLIENT_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
   let lastLocalChange = parseInt(localStorage.getItem(LS_KEY + "_updatedAt") || "0", 10) || 0;
-  let cloud = { app: null, db: null, auth: null, user: null, docRef: null, unsub: null, connected: false, applyingRemote: false, uploadTimer: null };
+  let cloud = { app: null, db: null, auth: null, user: null, docRef: null, unsub: null, connected: false, applyingRemote: false, uploadTimer: null, ready: false, localDirty: false, inFlight: false, syncGeneration: 0 };
+  let appBooting = true;
 
   // ---- core rule ----
   function computeSuggestion(perf, liqAvailable, cfg) {
@@ -1419,6 +1420,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     lastLocalChange = Date.now();
     localStorage.setItem(LS_KEY + "_updatedAt", String(lastLocalChange));
+    if (!appBooting && !cloud.applyingRemote) cloud.localDirty = true;
     scheduleCloudUpload();
   }
 
@@ -2403,52 +2405,142 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     return fbMods;
   }
 
+
+  // L'unione dei mesi evita che uno storico di settembre cancelli ottobre.
+  // In presenza di due versioni dello stesso mese prevale la copia remota,
+  // salvo una modifica esplicita non ancora sincronizzata su questo dispositivo.
+  function mergeHistoryMonths(remoteMonths, localMonths, localWins=false) {
+    const remote=Array.isArray(remoteMonths)?remoteMonths:[];
+    const local=Array.isArray(localMonths)?localMonths:[];
+    const result=remote.map(row=>({...row}));
+    const byKey=new Map(result.map((row,i)=>[monthIdentity(row),i]));
+    for(const month of local){
+      const key=monthIdentity(month);
+      if(!key)continue;
+      if(byKey.has(key)){if(localWins)result[byKey.get(key)]={...month};}
+      else{byKey.set(key,result.length);result.push({...month});}
+    }
+    if(result.length>remote.length){
+      const sortKey=row=>{const key=monthIdentity(row);return /^20\d{2}-\d{2}$/.test(key)?Number(key.replace("-","")):Number.MAX_SAFE_INTEGER;};
+      result.sort((a,b)=>sortKey(a)-sortKey(b));
+    }
+    return result;
+  }
+
   function scheduleCloudUpload() {
-    if (!cloud.connected || cloud.applyingRemote) return;
-    if (cloud.uploadTimer) clearTimeout(cloud.uploadTimer);
-    cloud.uploadTimer = setTimeout(uploadState, 800);
+    if(!cloud.connected||!cloud.ready||cloud.applyingRemote)return;
+    if(cloud.uploadTimer)clearTimeout(cloud.uploadTimer);
+    cloud.uploadTimer=setTimeout(()=>uploadState(),850);
   }
 
   async function uploadState() {
-    if (!cloud.connected || !cloud.docRef) return;
-    // Non caricare mai uno stato vuoto in cloud: eviterebbe di sovrascrivere dati reali su altri dispositivi.
-    if (isEmptyState(state)) return;
+    if(!cloud.connected||!cloud.ready||!cloud.docRef||cloud.inFlight)return;
+    if(isEmptyState(state))return;
+    cloud.inFlight=true;
+    const generation=cloud.syncGeneration;
+    const dirty=cloud.localDirty;
+    const sentAt=lastLocalChange;
+    const candidate=JSON.parse(JSON.stringify(state));
     try {
-      const { setDoc } = fbMods.storeMod;
-      await setDoc(cloud.docRef, {
-        state: JSON.stringify(state),
-        updatedAt: lastLocalChange,
-        client: CLIENT_ID,
-        savedAt: Date.now()
+      const {runTransaction}=fbMods.storeMod;
+      const result=await runTransaction(cloud.db,async tx=>{
+        const snap=await tx.get(cloud.docRef);
+        let remote=null,remoteData=null;
+        if(snap.exists()){
+          remoteData=snap.data();
+          try{remote=JSON.parse(remoteData.state);}catch(e){throw Error("Lo stato cloud non è leggibile; nessun dato sovrascritto.");}
+          if(!remote||!Array.isArray(remote.months))throw Error("Lo stato cloud non è valido; nessun dato sovrascritto.");
+        }
+        // Il server è la base quando il dispositivo si limita ad aprire l'app.
+        // Solo un'azione vera dell'utente può inviare modifiche a posizioni/configurazione.
+        const base=remote?(dirty?candidate:remote):candidate;
+        const merged={...base,months:mergeHistoryMonths(remote?.months,candidate.months,dirty)};
+        const changed=!remote||JSON.stringify(merged)!==JSON.stringify(remote);
+        if(changed)tx.set(cloud.docRef,{state:JSON.stringify(merged),updatedAt:Date.now(),client:CLIENT_ID,savedAt:Date.now()});
+        return {merged,changed};
       });
-      fbStatus("Sincronizzato ✓ (" + new Date().toLocaleTimeString("it-IT") + ")", "");
-    } catch (e) {
-      fbStatus("Errore invio dati: " + (e && e.message ? e.message : e), "bad");
-    }
+      if(generation!==cloud.syncGeneration)return;
+      if(lastLocalChange===sentAt){
+        cloud.localDirty=false;
+        applyMergedState(result.merged,Date.now(),result.changed?"Storico protetto e sincronizzato ✓":"Sincronizzazione verificata ✓");
+      }else{
+        // Ulteriori modifiche effettuate durante il salvataggio: non sovrascriverle.
+        cloud.localDirty=true;
+        scheduleCloudUpload();
+      }
+    }catch(e){
+      fbStatus("Sincronizzazione sospesa: "+(e?.message||e)+". I dati locali sono stati conservati.","bad");
+    }finally{cloud.inFlight=false;if(cloud.localDirty&&cloud.ready&&generation===cloud.syncGeneration)scheduleCloudUpload();}
   }
 
-  function applyRemoteState(remote) {
-    try {
-      const parsed = JSON.parse(remote.state);
-      // Sicurezza: non sovrascrivere dati locali reali con uno stato remoto vuoto.
-      if (isEmptyState(parsed) && !isEmptyState(state)) {
-        fbStatus("Ignorati dati cloud vuoti (mantenuti i dati locali).", "warn");
+  function applyMergedState(merged,timestamp,message) {
+    if(!merged||typeof merged!=="object"||!Array.isArray(merged.months))return;
+    if(cloud.localDirty)return; // non perdere modifiche effettuate in questa sessione
+    cloud.applyingRemote=true;
+    try{
+      const mergedJson=JSON.stringify(merged);
+      if(JSON.stringify(state)!==mergedJson){
+        backupState();
+        state=Object.assign({cfg:{},crash:[],months:[],holdings:[]},merged);
+        editIdx=null;
+        syncInputsFromState();render();renderHoldings();renderAllocation();updatePreview();
+        if(typeof setLineMode==="function")setLineMode(state.lineMode||"profit");
+      }
+      lastLocalChange=timestamp||Date.now();
+      localStorage.setItem(LS_KEY,JSON.stringify(state));
+      localStorage.setItem(LS_KEY+"_updatedAt",String(lastLocalChange));
+      fbStatus(message||"Storico aggiornato dal cloud ✓","");
+    }finally{cloud.applyingRemote=false;}
+  }
+
+  function startSync(uid) {
+    const {doc,onSnapshot}=fbMods.storeMod;
+    stopSync();
+    cloud.docRef=doc(cloud.db,"pacStates",uid);
+    cloud.connected=true;
+    cloud.ready=false;
+    const generation=cloud.syncGeneration;
+    cloud.unsub=onSnapshot(cloud.docRef,snap=>{
+      if(generation!==cloud.syncGeneration)return;
+      if(snap.metadata?.fromCache){fbStatus("Verifica dei dati sul server in corso…","");return;}
+      if(snap.metadata?.hasPendingWrites)return;
+      let remote=null;
+      if(snap.exists()){
+        const data=snap.data();
+        try{remote=JSON.parse(data.state);}catch(e){fbStatus("Dati cloud illeggibili: nessuna sovrascrittura eseguita.","bad");return;}
+        if(!remote||!Array.isArray(remote.months)){fbStatus("Formato cloud non valido: sincronizzazione bloccata.","bad");return;}
+      }
+      if(!cloud.ready){
+        cloud.ready=true;
+        // Non usare il timestamp locale per decidere chi sovrascrive il cloud.
+        // Al primo accesso il server resta autoritativo per gli asset; i mesi mancanti vengono reintegrati.
+        if(!remote||mergeHistoryMonths(remote.months,state.months).length>remote.months.length){
+          scheduleCloudUpload();
+        }else if(cloud.localDirty){
+          scheduleCloudUpload();
+        }else{
+          applyMergedState(remote,Date.now(),"Dati aggiornati dal cloud ✓");
+        }
         return;
       }
-      cloud.applyingRemote = true;
-      state = Object.assign({ cfg: {}, crash: [], months: [], holdings: [] }, parsed);
-      lastLocalChange = remote.updatedAt || Date.now();
-      localStorage.setItem(LS_KEY, JSON.stringify(state));
-      localStorage.setItem(LS_KEY + "_updatedAt", String(lastLocalChange));
-      editIdx = null;
-      syncInputsFromState(); render(); renderHoldings(); renderAllocation(); updatePreview();
-      if (typeof setLineMode === "function") setLineMode(state.lineMode || "profit");
-      cloud.applyingRemote = false;
-      fbStatus("Aggiornato dal cloud ✓ (" + new Date().toLocaleTimeString("it-IT") + ")", "");
-    } catch (e) {
-      cloud.applyingRemote = false;
-      fbStatus("Dati remoti non validi.", "bad");
-    }
+      if(cloud.localDirty||cloud.inFlight){
+        if(cloud.localDirty)scheduleCloudUpload();
+        return;
+      }
+      if(!remote)return;
+      const mergedMonths=mergeHistoryMonths(remote.months,state.months);
+      if(mergedMonths.length>remote.months.length){scheduleCloudUpload();return;}
+      applyMergedState(remote,Date.now(),"Sincronizzazione protetta ✓");
+    },err=>fbStatus("Errore sincronizzazione: "+(err?.message||err),"bad"));
+    fbStatus("Connessione cloud in verifica…","");
+  }
+
+  function stopSync() {
+    if(cloud.unsub){try{cloud.unsub();}catch(e){}}
+    cloud.unsub=null;
+    cloud.connected=false;cloud.ready=false;cloud.docRef=null;
+    cloud.syncGeneration++;
+    if(cloud.uploadTimer){clearTimeout(cloud.uploadTimer);cloud.uploadTimer=null;}
   }
 
   function fbSetUser(user) {
@@ -3451,6 +3543,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   updatePreview();
   initTabs();
   handleSharedImport();
+  appBooting = false;
 })();
 
 // Registrazione service worker (PWA installabile). Solo su http/https, non su file://.
