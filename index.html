@@ -715,11 +715,21 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .returns-chart .chart-mode-select{min-width:190px;max-width:100%}
 @media(max-width:800px){.dashboard-content-grid{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"chart" "allocation" "holdings"!important}.dashboard-content-grid>.card{min-width:0}.returns-chart #lineCanvas{height:270px!important}.dashboard-chart #homePortfolioCanvas{height:225px!important}}
 @media(max-width:480px){.returns-chart .chart-heading{align-items:stretch;flex-direction:column}.returns-chart .chart-mode-select{width:100%;max-width:none}.returns-chart{padding:17px!important}.dashboard-chart{padding:18px!important}.home-chart-period{font-size:9px}.dashboard-chart .chart-heading h2{font-size:17px}.returns-chart #lineCanvas{height:245px!important}}
+
+/* PWA installation controls */
+.app-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px}
+.install-app-btn{border:1px solid #cbd9f7;background:#edf3ff;color:#365bd4;font-size:12px;font-weight:750;padding:9px 13px;border-radius:10px;cursor:pointer}
+.install-app-btn[hidden]{display:none!important}
+.pwa-install-panel{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:16px;margin:15px 0 4px;border:1px solid #e4ebf7;border-radius:13px;background:#f7faff}
+.pwa-install-panel strong{font-size:14px;color:#2e4465}
+.pwa-install-panel p{font-size:12px;color:#7d8ba2;line-height:1.6;margin:6px 0 0}
+.pwa-install-panel button{white-space:nowrap}
+@media(max-width:600px){.app-header-actions .header-status{display:none}.pwa-install-panel{align-items:stretch;flex-direction:column}.pwa-install-panel button{width:100%}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="app-header"><div class="app-brand"><div class="brand-mark" aria-hidden="true">↗</div><div><h1>PAC ETF</h1><div class="subtitle">Il tuo patrimonio Scalable, tutto sotto controllo</div></div></div><span class="header-status">● Portfolio dashboard</span></header>
+  <header class="app-header"><div class="app-brand"><div class="brand-mark" aria-hidden="true">↗</div><div><h1>PAC ETF</h1><div class="subtitle">Il tuo patrimonio Scalable, tutto sotto controllo</div></div></div><div class="app-header-actions"><button type="button" class="install-app-btn" id="btnInstallPwa" hidden>↓ Installa app</button><span class="header-status">● Portfolio dashboard</span></div></header>
 
   <section class="dashboard-intro" data-tab="home"><div><div class="eyebrow">OVERVIEW · SCALABLE CAPITAL</div><h2>Il tuo patrimonio, a colpo d'occhio.</h2><p>Andamento, capitale versato e investimenti in un unico posto.</p></div><button type="button" class="dashboard-link" id="btnGoDetails">Esplora i rendimenti <span aria-hidden="true">↗</span></button></section>
   <section class="dashboard-hero" data-tab="home"><div class="hero-top"><span>Patrimonio totale</span><span class="hero-caption">Storico PAC ETF</span></div><div class="hero-number" id="heroTotal">—</div><div class="hero-bottom"><div><span>Profitto cumulato</span><strong id="heroProfit">—</strong></div><div><span>Capitale versato</span><strong id="heroInvested">—</strong></div><div><span>Rendimento XIRR</span><strong id="heroXirr">—</strong></div></div><div class="hero-footnote">Valori calcolati dallo storico mensile registrato, non necessariamente dal saldo Scalable in tempo reale.</div></section>
@@ -1017,6 +1027,10 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
       </div>
     </div>
     <div id="fbStatus" class="note" style="margin-top:12px;">Non connesso.</div>
+    <div class="pwa-install-panel">
+      <div><strong>Installazione su smartphone</strong><p id="pwaInstallInfo">Apri questo sito in Chrome per installare PAC ETF sulla schermata Home.</p></div>
+      <button type="button" class="ghost" id="btnInstallPwaAccount">Installa app</button>
+    </div>
     <div class="cloud-diagnostics">
       <div><span>Storico sul dispositivo</span><strong id="syncLocalMonths">—</strong></div>
       <div><span>Ultimo mese sul dispositivo</span><strong id="syncLocalLast">—</strong></div>
@@ -3888,10 +3902,53 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   appBooting = false;
 })();
 
-// Registrazione service worker (PWA installabile). Solo su http/https, non su file://.
-if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+// Installazione PWA: richiesta esplicita quando Chrome offre il prompt;
+ // in altri browser istruzioni manuali, mai pulsanti senza azione.
+let pendingInstallPrompt=null;
+const isInstalledPwa=()=>window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+const installButtons=[document.getElementById("btnInstallPwa"),document.getElementById("btnInstallPwaAccount")];
+function updateInstallUi(){
+  const installed=isInstalledPwa();
+  const banner=document.getElementById("btnInstallPwa");
+  const account=document.getElementById("btnInstallPwaAccount");
+  const info=document.getElementById("pwaInstallInfo");
+  if(banner)banner.hidden=installed||!pendingInstallPrompt;
+  if(account){account.disabled=installed;account.textContent=installed?"App installata":pendingInstallPrompt?"Installa app":"Come installare";}
+  if(info)info.textContent=installed
+    ?"PAC ETF è già aperta come applicazione installata."
+    :pendingInstallPrompt
+      ?"Il tuo browser consente l'installazione diretta: premi «Installa app»."
+      :"Su Android apri PAC ETF direttamente in Google Chrome, poi tocca ⋮ → Installa app (oppure Aggiungi a schermata Home). Da browser interni ad altre app l'installazione potrebbe non essere disponibile.";
+}
+window.addEventListener("beforeinstallprompt",event=>{
+  event.preventDefault();
+  pendingInstallPrompt=event;
+  updateInstallUi();
+});
+window.addEventListener("appinstalled",()=>{pendingInstallPrompt=null;updateInstallUi();});
+installButtons.forEach(button=>button?.addEventListener("click",async()=>{
+  if(isInstalledPwa()){updateInstallUi();return;}
+  if(!pendingInstallPrompt){
+    const info=document.getElementById("pwaInstallInfo");
+    if(info)info.textContent="Per installare: apri https://gianmarcotacchini92.github.io/pac-etf/ in Google Chrome, tocca ⋮ in alto a destra, quindi «Installa app» o «Aggiungi a schermata Home». Se non compare, verifica che il sito non sia già installato.";
+    document.querySelector(".pwa-install-panel")?.scrollIntoView({behavior:"smooth",block:"center"});
+    return;
+  }
+  const prompt=pendingInstallPrompt;
+  pendingInstallPrompt=null;
+  prompt.prompt();
+  try{await prompt.userChoice;}catch(e){}
+  updateInstallUi();
+}));
+updateInstallUi();
+
+// Registrazione service worker: segnala errori di installabilità senza esporre dati.
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(err=>{
+      const info=document.getElementById("pwaInstallInfo");
+      if(info)info.textContent="Il service worker non si è registrato ("+(err?.message||"errore sconosciuto")+"). Riapri la pagina in Chrome e riprova.";
+    });
   });
 }
 </script>
