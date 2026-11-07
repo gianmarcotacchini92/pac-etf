@@ -416,6 +416,36 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
 .allocation-minor-row b{color:#394966}
 @media(min-width:1080px){.portfolio-allocation>div{display:flex!important}}
 @media(min-width:1080px) and (max-width:1410px){.portfolio-allocation>div{display:flex!important}}
+
+/* Position management: fully responsive cards, no horizontal scrolling */
+.position-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+.position-edit-card{border:1px solid #e4eaf4;background:#fbfcff;border-radius:15px;padding:17px;min-width:0}
+.position-edit-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:15px;margin-bottom:15px;border-bottom:1px solid #e8edf5}
+.position-edit-title{display:flex;align-items:center;gap:11px;min-width:0}
+.position-edit-avatar{display:grid;place-items:center;flex:0 0 37px;width:37px;height:37px;border-radius:11px;background:#eaf0ff;color:#4462d6;font-size:11px;font-weight:800;overflow:hidden}
+.position-edit-title>div{min-width:0}
+.position-edit-title strong{display:block;font-size:13px;font-weight:750;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.position-edit-title small{display:block;color:#8796ab;margin-top:4px;font-size:11px}
+.position-delete{background:#fff;color:#d04d67;border:1px solid #f4dce1;border-radius:9px;padding:7px 10px;font-size:14px;flex-shrink:0}
+.position-delete:hover{background:#fff0f3;color:#bb3756}
+.position-edit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.position-field{min-width:0}
+.position-field label{font-size:10px;letter-spacing:.04em;color:#7e8b9f;display:block;margin-bottom:7px;font-weight:700}
+.position-field input[type="text"],.position-field input[type="number"]{display:block;width:100%;min-width:0;max-width:none!important;height:40px;font-size:14px;margin:0;padding:9px 11px;background:#fff;border:1px solid #dce4f1;border-radius:9px}
+.position-readonly{display:flex;align-items:center;min-width:0;min-height:40px;font-size:13px;color:#475973;font-weight:600;overflow-wrap:anywhere}
+.position-currency{display:block;font-size:10px;color:#8d9bad}
+.position-value{display:flex;align-items:center;min-height:40px;font-size:16px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.position-edit-footer{margin-top:15px;border-top:1px solid #e8edf5;padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.position-edit-footer>span{font-size:11px;color:#7c8ba1;font-weight:650}
+.position-pl{text-align:right;font-size:13px}
+.position-pl br+span{display:block;margin-top:3px!important}
+.position-empty{grid-column:1/-1;padding:26px;border:1px dashed #dce5f2;border-radius:12px;text-align:center;color:#77879e;font-size:13px}
+.portfolio-editor[open] .position-editor-grid{margin-top:18px}
+@media(min-width:1700px){.position-editor-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1250px){.position-editor-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:1079px) and (min-width:700px){.position-editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:699px){.position-editor-grid{grid-template-columns:minmax(0,1fr)}.position-edit-card{padding:15px}.position-edit-fields{gap:12px}.position-field input[type="text"],.position-field input[type="number"]{font-size:16px}.position-value{font-size:15px}}
+@media(max-width:360px){.position-edit-fields{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -533,16 +563,7 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
     <div class="hint">Sincronizza prezzi e quantità dal tuo conto Scalable tramite ChatGPT. Gli asset manuali restano modificabili.</div>
     <div id="assetOverview" class="asset-overview" aria-live="polite"></div>
     <details class="portfolio-editor"><summary>Gestisci posizioni e prezzi</summary>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ISIN</th><th>Nome</th><th>Ticker</th><th>Quantità</th><th>Prezzo medio acq.</th><th>Prezzo attuale</th><th>Valore</th><th>P/L</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="holdBody"></tbody>
-      </table>
-    </div>
+    <div id="holdBody" class="position-editor-grid" aria-label="Modifica le posizioni del portafoglio"></div>
     </details>
     <div class="toolbar" style="justify-content:space-between;align-items:center;">
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -1459,46 +1480,33 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
   const chartModeSelect=document.getElementById("chartModeSelect");
   chartModeSelect?.addEventListener("change",event=>setLineMode(event.target.value));
   function renderHoldings() {
-    const body = $("holdBody");
-    if (!state.holdings.length) {
-      body.innerHTML = '<tr><td colspan="9" class="empty">Nessun ETF. Aggiungine uno per calcolare il valore automaticamente.</td></tr>';
-    } else {
-      body.innerHTML = state.holdings.map((h, i) => {
-        const val = num(h.qty) * num(h.price);
-        const buy = num(h.buyPrice);
-        const plCell = plCellHtml(h);
-        if (h.manual) {
-          return "<tr>" +
-            '<td><span class="badge safe" title="Asset manuale">manuale</span></td>' +
-            '<td><input type="text" class="h-name" data-i="' + i + '" value="' + escapeHtml(h.name || "") + '" placeholder="es. Bitcoin"></td>' +
-            '<td class="muted">—</td>' +
-            '<td><input type="number" class="h-qty" data-i="' + i + '" step="any" value="' + (h.qty === 0 || h.qty ? h.qty : "") + '"></td>' +
-            '<td><input type="number" class="h-buy" data-i="' + i + '" step="any" value="' + (h.buyPrice === 0 || h.buyPrice ? h.buyPrice : "") + '" placeholder="€ PMC" style="max-width:110px;"></td>' +
-            '<td><input type="number" class="h-price" data-i="' + i + '" step="any" value="' + (h.price === 0 || h.price ? h.price : "") + '" placeholder="€ prezzo" style="max-width:120px;"></td>' +
-            '<td><b>' + (val ? eur(val) : "—") + '</b></td>' +
-            '<td>' + plCell + '</td>' +
-            '<td><button class="del h-del" data-i="' + i + '" title="Elimina">✕</button></td>' +
-          "</tr>";
-        }
-        let priceCell = "—";
-        if (h.price) {
-          priceCell = eur(h.price);
-          if (h.srcCurrency && h.srcCurrency !== "EUR" && h.srcPrice) {
-            priceCell += ' <span class="muted" style="font-size:11px;">(' +
-              num(h.srcPrice).toLocaleString("it-IT", { maximumFractionDigits: 2 }) + " " + escapeHtml(h.srcCurrency) + ")</span>";
-          }
-        }
-        return "<tr>" +
-          '<td><input type="text" class="h-isin" data-i="' + i + '" value="' + escapeHtml(h.isin || "") + '" placeholder="IE00..."></td>' +
-          '<td>' + (h.name ? escapeHtml(h.name) : '<span class="muted">—</span>') + '</td>' +
-          '<td><input type="text" class="h-sym" data-i="' + i + '" value="' + escapeHtml(h.symbol || "") + '" placeholder="auto"></td>' +
-          '<td><input type="number" class="h-qty" data-i="' + i + '" step="any" value="' + (h.qty === 0 || h.qty ? h.qty : "") + '"></td>' +
-          '<td><input type="number" class="h-buy" data-i="' + i + '" step="any" value="' + (h.buyPrice === 0 || h.buyPrice ? h.buyPrice : "") + '" placeholder="€ PMC" style="max-width:110px;"></td>' +
-          '<td>' + priceCell + '</td>' +
-          '<td><b>' + (val ? eur(val) : "—") + '</b></td>' +
-          '<td>' + plCell + '</td>' +
-          '<td><button class="del h-del" data-i="' + i + '" title="Elimina">✕</button></td>' +
-        "</tr>";
+    const body=$("holdBody");
+    if(!state.holdings.length){
+      body.innerHTML='<div class="position-empty">Nessun asset presente. Aggiungi un ETF o sincronizza Scalable.</div>';
+    }else{
+      body.innerHTML=state.holdings.map((h,i)=>{
+        const value=num(h.qty)*num(h.price);
+        const manual=!!h.manual;
+        const title=escapeHtml(h.name||h.symbol||h.isin||("Asset "+(i+1)));
+        const index=' data-i="'+i+'"';
+        const input=(field,type,val,placeholder,extra)=>'<input id="hold-'+field+'-'+i+'" class="h-'+field+'"'+index+' type="'+type+'" '+(type==="number"?'step="any" ':'')+'value="'+escapeHtml(String(val??""))+'" placeholder="'+placeholder+'" '+(extra||"")+'>';
+        const field=(label,content,extra)=>'<div class="position-field '+(extra||"")+'"><label>'+label+'</label>'+content+'</div>';
+        let priceText=h.price?eur(h.price):"—";
+        if(h.srcCurrency&&h.srcCurrency!=="EUR"&&h.srcPrice)priceText+=' <small class="position-currency">'+num(h.srcPrice).toLocaleString("it-IT",{maximumFractionDigits:2})+' '+escapeHtml(h.srcCurrency)+'</small>';
+        const identity=manual
+          ?field("Nome asset",input("name","text",h.name||"","Nome asset"),"position-identity")
+          :field("ISIN",input("isin","text",h.isin||"","IE00..."),"position-identity");
+        const symbol=manual?field("Tipo",'<span class="position-readonly">Asset manuale</span>'):field("Ticker",input("sym","text",h.symbol||"","Ticker"));
+        const price=manual?input("price","number",h.price??"","Prezzo attuale"):('<span class="position-readonly">'+priceText+'</span>');
+        return '<section class="position-edit-card" data-position="'+i+'">'+
+          '<div class="position-edit-head"><div class="position-edit-title"><span class="position-edit-avatar">'+escapeHtml((h.symbol||h.isin||"ETF").slice(0,3).toUpperCase())+'</span><div><strong title="'+title+'">'+title+'</strong><small>'+(manual?'Asset manuale':'Posizione ETF')+'</small></div></div>'+
+          '<button class="position-delete h-del" type="button"'+index+' aria-label="Elimina '+title+'" title="Elimina posizione">✕</button></div>'+
+          '<div class="position-edit-fields">'+identity+symbol+
+          field("Quantità",input("qty","number",h.qty??"","0"))+
+          field("Prezzo medio acquisto",input("buy","number",h.buyPrice??"","€ PMC"))+
+          field("Prezzo attuale",price)+
+          field("Controvalore",'<strong class="position-value">'+(value?eur(value):"—")+'</strong>')+
+          '</div><div class="position-edit-footer"><span>Profitto / perdita</span><div class="position-pl">'+plCellHtml(h)+'</div></div></section>';
       }).join("");
     }
     updateHoldTotal();
@@ -2318,26 +2326,26 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
     }
   }
 
-  $("holdBody").addEventListener("input", (e) => {
-    const el = e.target; const i = parseInt(el.dataset.i, 10);
-    if (isNaN(i) || !state.holdings[i]) return;
-    if (el.classList.contains("h-isin")) state.holdings[i].isin = el.value;
-    else if (el.classList.contains("h-sym")) state.holdings[i].symbol = el.value;
-    else if (el.classList.contains("h-qty")) state.holdings[i].qty = el.value;
-    else if (el.classList.contains("h-name")) state.holdings[i].name = el.value;
-    else if (el.classList.contains("h-price")) {
-      state.holdings[i].price = num(el.value);
-      const cell = el.closest("tr").children[7];
-      if (cell) cell.innerHTML = plCellHtml(state.holdings[i]);
+  $("holdBody").addEventListener("input",(e)=>{
+    const el=e.target,i=parseInt(el.dataset.i,10);
+    if(!Number.isInteger(i)||!state.holdings[i])return;
+    const h=state.holdings[i];
+    if(el.classList.contains("h-isin"))h.isin=el.value;
+    else if(el.classList.contains("h-sym"))h.symbol=el.value;
+    else if(el.classList.contains("h-qty"))h.qty=el.value;
+    else if(el.classList.contains("h-name"))h.name=el.value;
+    else if(el.classList.contains("h-price"))h.price=el.value===""?0:num(el.value);
+    else if(el.classList.contains("h-buy"))h.buyPrice=el.value===""?"":num(el.value);
+    else return;
+    const card=el.closest(".position-edit-card");
+    if(card){
+      const val=num(h.qty)*num(h.price);
+      const valueNode=card.querySelector(".position-value");
+      if(valueNode)valueNode.textContent=val?eur(val):"—";
+      const plNode=card.querySelector(".position-pl");
+      if(plNode)plNode.innerHTML=plCellHtml(h);
     }
-    else if (el.classList.contains("h-buy")) {
-      state.holdings[i].buyPrice = el.value === "" ? "" : num(el.value);
-      const cell = el.closest("tr").children[7];
-      if (cell) cell.innerHTML = plCellHtml(state.holdings[i]);
-      save();
-      return;
-    }
-    save(); updateHoldTotal();
+    save();updateHoldTotal();renderAssetOverview();
   });
 
   $("holdBody").addEventListener("click", (e) => {
