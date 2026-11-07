@@ -691,6 +691,8 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
     </div>
     <div class="toolbar">
       <button class="ghost" id="btnExport">Esporta JSON</button>
+      <button class="ghost" id="btnMergeMonths">Recupera mesi da backup JSON</button>
+      <input type="file" id="mergeMonthsFile" accept=".json,application/json" hidden />
       <button class="ghost" id="btnRestoreBackup">↩ Ripristina backup</button>
       <button class="ghost" id="btnReset">Azzera tutto</button>
     </div>
@@ -1441,6 +1443,59 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
       save(); render(); updatePreview();
     });
   })();
+
+
+  // Recupero selettivo storico: importa solo etichette di mese mancanti.
+  // Non modifica holdings, asset, impostazioni o mesi già esistenti.
+  function monthIdentity(month) {
+    const text=String(month&&month.label||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    const m=text.match(/(20\d{2})/);
+    if(!m)return text.replace(/\s+/g," ");
+    const names=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+    const tokens=text.replace(/20\d{2}/g,"").replace(/[^a-z]/g," ").trim().split(/\s+/);
+    let index=-1;
+    for(const token of tokens){index=names.findIndex(name=>token.startsWith(name));if(index>=0)break;}
+    return index<0?text.replace(/\s+/g," "):m[1]+"-"+String(index+1).padStart(2,"0");
+  }
+  function validBackupMonth(row) {
+    return row&&typeof row==="object"&&!Array.isArray(row)&&
+      typeof row.label==="string"&&row.label.trim().length>0&&
+      Number.isFinite(Number(row.observed))&&
+      (row.real===undefined||typeof row.real==="boolean");
+  }
+  $("btnMergeMonths").addEventListener("click",()=>{ $("mergeMonthsFile").value=""; $("mergeMonthsFile").click(); });
+  $("mergeMonthsFile").addEventListener("change",async e=>{
+    const file=e.target.files&&e.target.files[0];
+    if(!file)return;
+    try{
+      if(file.size>5*1024*1024)throw Error("File troppo grande (massimo 5 MB).");
+      const incoming=JSON.parse(await file.text());
+      if(!incoming||!Array.isArray(incoming.months))throw Error("Il file non contiene uno storico mesi valido.");
+      if(incoming.months.some(row=>!validBackupMonth(row)))throw Error("Il file contiene registrazioni mensili non valide.");
+      const existing=new Set((state.months||[]).map(monthIdentity));
+      const missing=[];
+      for(const row of incoming.months){
+        const key=monthIdentity(row);
+        if(!key||existing.has(key))continue;
+        missing.push(structuredClone(row));
+        existing.add(key);
+      }
+      if(!missing.length){alert("Nessun mese mancante: lo storico attuale contiene già tutti i mesi del file.");return;}
+      const names=missing.map(row=>row.label).join(", ");
+      const msg="Recupero selettivo dei mesi mancanti dal backup:\n\n"+names+
+        "\n\nVerranno aggiunti "+missing.length+" mesi. ETF, prezzi, impostazioni e mesi già presenti NON saranno modificati. Prima verrà creato un backup locale. Confermi?";
+      if(!confirm(msg))return;
+      if(!backupState())throw Error("Impossibile creare il backup di sicurezza: recupero annullato.");
+      state.months=[...(state.months||[]),...missing];
+      const getOrder=month=>{const key=monthIdentity(month);return /^20\d{2}-\d{2}$/.test(key)?Number(key.replace("-","")):Infinity;};
+      state.months.sort((a,b)=>getOrder(a)-getOrder(b));
+      save();editIdx=null;
+      syncInputsFromState();render();renderHoldings();updatePreview();
+      setLineMode(state.lineMode||"profit");
+      alert("Recuperati "+missing.length+" mesi: "+names+". Le altre informazioni sono rimaste invariate.");
+    }catch(err){alert("Recupero non eseguito: "+(err&&err.message||err));}
+    finally{e.target.value="";}
+  });
 
   $("btnExport").addEventListener("click", () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
