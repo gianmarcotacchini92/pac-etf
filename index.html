@@ -463,9 +463,10 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
     <button type="button" class="tabbtn" data-go="account"><span class="tico">⚙</span>Account</button>
   </nav>
 
+  <section class="section-intro" data-tab="piano"><div class="eyebrow">STRATEGIA PAC</div><h2>Il tuo piano, con metodo.</h2><p>Obiettivi, regole di investimento e gestione della liquidità.</p></section>
   <!-- Stato iniziale + config -->
-  <div class="card" data-tab="piano">
-      <h2><span class="ico">⚙️</span> Stato iniziale &amp; regole</h2>
+  <div class="card plan-config" data-tab="piano">
+      <h2><span class="ico">⚙</span> Parametri del PAC</h2>
       <div class="row2">
         <div>
           <label>Valore portafoglio iniziale (€)</label>
@@ -493,9 +494,10 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
       <div class="hint">La quota minima è quanto investi sempre quando la performance è già forte (il resto del budget va in liquidità).</div>
     </div>
 
+  <section class="section-intro" data-tab="mese"><div class="eyebrow">STORICO VERSAMENTI</div><h2>Movimenti e registrazioni.</h2><p>Registra un nuovo mese e consulta tutti i valori storici.</p></section>
   <!-- Nuovo mese -->
-  <div class="card" data-tab="mese">
-      <h2><span class="ico">➕</span> Nuovo mese</h2>
+  <div class="card month-entry" data-tab="mese">
+      <h2><span class="ico">＋</span> Registra un mese</h2>
       <label>Etichetta mese (es. Gen 2026)</label>
       <input type="text" id="mLabel" placeholder="Mese/Anno" />
       <label>Valore attuale del portafoglio, prima del versamento (€)</label>
@@ -591,9 +593,10 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
     <div id="sugNote"></div>
   </div>
 
+  <section class="section-intro" data-tab="riepilogo"><div class="eyebrow">ANALISI DEL PORTAFOGLIO</div><h2>Rendimenti e patrimonio.</h2><p>Il rendimento calcolato a partire dallo storico mensile registrato.</p></section>
   <!-- Riepilogo -->
-  <div class="card" style="margin-bottom:16px;" data-tab="riepilogo">
-    <h2><span class="ico">📊</span> Riepilogo</h2>
+  <div class="card yield-summary" style="margin-bottom:16px;" data-tab="riepilogo">
+    <h2><span class="ico">◈</span> Composizione del patrimonio</h2>
     <div class="grid" style="margin-bottom:0;">
       <div class="stat"><div class="k">Valore portafoglio</div><div class="v neu" id="sVal">€0</div></div>
       <div class="stat"><div class="k">Liquidità cumulata</div><div class="v neu" id="sLiq">€0</div></div>
@@ -604,8 +607,8 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
   </div>
 
   <!-- Rendimento annualizzato -->
-  <div class="card" style="margin-bottom:16px;" data-tab="riepilogo">
-    <h2><span class="ico">📐</span> Rendimento annualizzato</h2>
+  <div class="card yield-metrics" style="margin-bottom:16px;" data-tab="riepilogo">
+    <h2><span class="ico">↗</span> Indicatori di rendimento</h2>
     <div class="hint">I mesi registrati sono considerati consecutivi (cadenza mensile del PAC). Il <b>TWR</b> misura la bravura degli strumenti (indipendente da quando versi); l'<b>XIRR</b> (o TIR) è il rendimento reale annuo dei <i>tuoi</i> versamenti, tenendo conto di quanto e quando hai messo.</div>
     <div class="grid" style="margin-bottom:0;">
       <div class="stat"><div class="k">Rendimento reale annuo (XIRR)</div><div class="v neu" id="rXirr">—</div></div>
@@ -616,7 +619,7 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
   </div>
 
   <!-- Proiezione verso l'obiettivo -->
-  <div class="card" style="margin-bottom:16px;" data-tab="piano">
+  <div class="card plan-goal" style="margin-bottom:16px;" data-tab="piano">
     <h2><span class="ico">🎯</span> Proiezione verso l'obiettivo</h2>
     <div class="row3">
       <div>
@@ -636,8 +639,8 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
   </div>
 
   <!-- Punti d'ingresso crolli -->
-  <div class="card" style="margin-bottom:16px;" data-tab="piano">
-    <h2><span class="ico">📉</span> Punti d'ingresso in caso di crollo</h2>
+  <div class="card plan-crash" style="margin-bottom:16px;" data-tab="piano">
+    <h2><span class="ico">↘</span> Riserva per le correzioni di mercato</h2>
     <div class="hint">Le percentuali dividono la <b>liquidità di riserva</b> (la liquidità attuale) tra le tre soglie e <b>devono sommare a 100%</b>. Riserva la quota maggiore ai drawdown più profondi: ogni importo è calcolato sulla riserva iniziale, così i grandi cali ricevono sempre la fetta più grande anche dopo aver già investito nei primi scaglioni.</div>
     <div class="row3" style="margin-bottom:14px;">
       <div>
@@ -667,8 +670,8 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
   </div>
 
   <!-- Storico -->
-  <div class="card" style="margin-bottom:16px;" data-tab="mese">
-    <h2><span class="ico">🗂️</span> Storico mensile</h2>
+  <div class="card month-history" style="margin-bottom:16px;" data-tab="mese">
+    <h2><span class="ico">▦</span> Cronologia mensile <span class="history-count" id="historyCount"></span></h2>
     <div class="table-wrap">
       <table>
         <thead>
@@ -1118,6 +1121,8 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
     sp.className = "v " + (totalPerf > 0 ? "pos" : totalPerf < 0 ? "neg" : "neu");
 
     // history
+    const historyCount=document.getElementById("historyCount");
+    if(historyCount)historyCount.textContent=d.rows.length+" mesi registrati";
     const body = $("histBody");
     if (!d.rows.length) {
       body.innerHTML = '<tr><td colspan="11" class="empty">Nessun mese registrato. Aggiungi il primo mese qui sopra.</td></tr>';
