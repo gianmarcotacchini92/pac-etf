@@ -646,6 +646,20 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .returns-small-metrics .returns-metric strong{font-size:21px}
 .returns-period-pill{font-size:10px;padding:5px 8px}}
 
+
+/* Mobile containment for restored Rendimenti view */
+@media(max-width:650px){
+  .returns-layout,.returns-primary,.returns-side,.returns-small-metrics,.returns-legend{min-width:0;max-width:100%}
+  .returns-primary-top{align-items:flex-start;flex-wrap:wrap}
+  .returns-main-figure{font-size:clamp(35px,10vw,44px);overflow-wrap:anywhere}
+  .returns-balance-head{flex-wrap:wrap}
+  .returns-balance-head strong,.returns-legend b,.returns-metric>strong{min-width:0;overflow-wrap:anywhere}
+  .returns-metric-lead strong{font-size:clamp(27px,8vw,34px)}
+  .returns-small-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:370px){
+  .returns-small-metrics{grid-template-columns:minmax(0,1fr)}
+}
 </style>
 </head>
 <body>
