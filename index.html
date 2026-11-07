@@ -702,6 +702,19 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .plan-crash .lvl{min-width:0;border-radius:12px}
 @media(max-width:950px){.plan-hero-grid{grid-template-columns:1fr}.plan-hero-aside{grid-template-columns:1fr 1fr;grid-template-rows:none}.plan-crash #crashLevels{grid-template-columns:1fr}.plan-fields{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.plan-headline{padding:21px 18px 12px}.plan-headline h2{font-size:21px}.plan-milestone-icon{display:none}.plan-hero-grid{padding:8px 18px 19px;gap:11px}.plan-hero-main{padding:19px}.plan-hero-main>strong{font-size:34px;margin:7px 0 20px}.plan-hero-aside{grid-template-columns:1fr 1fr;gap:9px}.plan-hero-aside>div{padding:12px}.plan-hero-aside strong{font-size:16px}.plan-controls{padding:18px}.plan-controls-title{display:block}.plan-controls-title>span{display:block;margin-top:5px}.plan-fields{grid-template-columns:1fr}.plan-config,.plan-crash{padding:20px 18px!important}.plan-config .row2,.plan-config .row3,.plan-crash .row3{grid-template-columns:minmax(0,1fr)}}
+
+/* Dedicated dashboard price history and analytics chart */
+.dashboard-chart #homePortfolioCanvas{display:block;width:100%;height:250px;max-width:100%;touch-action:pan-y}
+.dashboard-chart .home-chart-subtitle{font-size:12px;color:#8190a6;margin:0 0 11px;line-height:1.4}
+.dashboard-chart .home-chart-value{font-size:clamp(27px,3vw,39px);font-weight:840;letter-spacing:-.055em;color:#274266;margin:4px 0 14px;font-variant-numeric:tabular-nums}
+.home-chart-period{background:#edf3ff;border:1px solid #e2e9fa;border-radius:99px;padding:6px 10px;color:#5470a9;font-size:10px;font-weight:750;white-space:nowrap}
+.home-chart-detail{font-size:12px;color:#8090a6;margin:13px 0 0;min-height:17px}
+.returns-chart{margin-top:18px;margin-bottom:20px!important;border:1px solid #e4ebf5;border-radius:18px}
+.returns-chart #lineCanvas{display:block;width:100%;height:320px;max-width:100%;touch-action:pan-y}
+.returns-chart .chart-heading{display:flex;flex-wrap:wrap;align-items:center}
+.returns-chart .chart-mode-select{min-width:190px;max-width:100%}
+@media(max-width:800px){.dashboard-content-grid{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"chart" "allocation" "holdings"!important}.dashboard-content-grid>.card{min-width:0}.returns-chart #lineCanvas{height:270px!important}.dashboard-chart #homePortfolioCanvas{height:225px!important}}
+@media(max-width:480px){.returns-chart .chart-heading{align-items:stretch;flex-direction:column}.returns-chart .chart-mode-select{width:100%;max-width:none}.returns-chart{padding:17px!important}.dashboard-chart{padding:18px!important}.home-chart-period{font-size:9px}.dashboard-chart .chart-heading h2{font-size:17px}.returns-chart #lineCanvas{height:245px!important}}
 </style>
 </head>
 <body>
@@ -734,28 +747,13 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 
   <!-- Allocazione: torta + obiettivo -->
   <div class="dashboard-content-grid" data-tab="home">
-  <!-- Grafici -->
-  <div class="card dashboard-chart" style="margin-bottom:16px;" data-dashboard-panel="home">
-    <div class="chart-heading"><h2><span class="ico">📈</span> Andamento</h2><select id="chartModeSelect" class="chart-mode-select" aria-label="Visualizzazione grafico"><option value="versato">Versato vs patrimonio</option><option value="profit">Profitti generati</option><option value="rendimento">Rendimento %</option><option value="performance">Performance mensile</option><option value="composizione">Composizione patrimonio</option><option value="pl">P/L per asset</option><option value="proiezione">Proiezione obiettivo</option><option value="benchmark">Benchmark</option></select></div>
-    <div id="chartModes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-      <button id="btnCProfit">Profitti generati</button>
-      <button id="btnCVersato" class="ghost">Versato vs Patrimonio</button>
-      <button id="btnCRend" class="ghost">Rendimento %</button>
-      <button id="btnCPerf" class="ghost">Performance mensile</button>
-      <button id="btnCComp" class="ghost">Composizione patrimonio</button>
-      <button id="btnCPl" class="ghost">P/L per asset</button>
-      <button id="btnCProj" class="ghost">Proiezione obiettivo</button>
-      <button id="btnCBench" class="ghost">Benchmark</button>
-    </div>
-    <div id="chartControls" style="display:none;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
-      <input type="text" id="benchSymbol" placeholder="Ticker indice (es. SWDA.MI)" style="max-width:220px;" />
-      <button class="ghost" id="btnLoadBench" type="button">Carica benchmark</button>
-      <span class="hint" id="benchStatus" style="margin:0;"></span>
-    </div>
-    <div class="hint" id="lineHint" style="margin:0 0 10px;min-height:16px;"></div>
-    <canvas id="lineCanvas" height="280" style="width:100%;height:280px;display:block;"></canvas>
-    <div class="hint" id="lineLegend" style="margin-top:8px;"></div>
-    <div class="hint" id="lineDesc" style="margin-top:10px;">Passa il mouse sul grafico per i dettagli.</div>
+  <!-- Storico del valore investito (esclude la liquidità) -->
+  <div class="card dashboard-chart" data-dashboard-panel="home">
+    <div class="chart-heading"><h2><span class="ico">📈</span> Valore del portafoglio</h2><span class="home-chart-period" id="homeChartPeriod">Storico mensile</span></div>
+    <p class="home-chart-subtitle">Valore degli ETF a fine mese, esclusa la liquidità.</p>
+    <div class="home-chart-value" id="homeChartValue">—</div>
+    <canvas id="homePortfolioCanvas" height="250" aria-label="Andamento del valore del portafoglio nel tempo" role="img"></canvas>
+    <p class="home-chart-detail" id="homeChartDetail" aria-live="polite">Tocca il grafico per visualizzare il valore di un mese.</p>
   </div>
 
   <div class="card portfolio-allocation" style="margin-bottom:16px;" data-dashboard-panel="home">
@@ -848,6 +846,30 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
       <details class="returns-methodology"><summary>Come leggere questi risultati <span aria-hidden="true">⌄</span></summary><p><b>XIRR</b> e <b>TWR</b> sono attualmente approssimazioni costruite sui dati mensili registrati. Non rappresentano ancora un rendimento riconciliato su tutti i movimenti reali di Scalable e le loro date effettive. Il TWR è sensibile alla frequenza e alla qualità delle valutazioni disponibili.</p></details>
     </div>
   </section>
+
+  <div class="card returns-chart" style="margin-bottom:16px;" data-tab="riepilogo">
+    <div class="chart-heading"><h2><span class="ico">📊</span> Esplora i grafici</h2><select id="chartModeSelect" class="chart-mode-select" aria-label="Visualizzazione grafico"><option value="versato">Versato vs patrimonio</option><option value="profit">Profitti generati</option><option value="rendimento">Rendimento %</option><option value="performance">Performance mensile</option><option value="composizione">Composizione patrimonio</option><option value="pl">P/L per asset</option><option value="proiezione">Proiezione obiettivo</option><option value="benchmark">Benchmark</option></select></div>
+    <div id="chartModes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+      <button id="btnCProfit">Profitti generati</button>
+      <button id="btnCVersato" class="ghost">Versato vs Patrimonio</button>
+      <button id="btnCRend" class="ghost">Rendimento %</button>
+      <button id="btnCPerf" class="ghost">Performance mensile</button>
+      <button id="btnCComp" class="ghost">Composizione patrimonio</button>
+      <button id="btnCPl" class="ghost">P/L per asset</button>
+      <button id="btnCProj" class="ghost">Proiezione obiettivo</button>
+      <button id="btnCBench" class="ghost">Benchmark</button>
+    </div>
+    <div id="chartControls" style="display:none;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+      <input type="text" id="benchSymbol" placeholder="Ticker indice (es. SWDA.MI)" style="max-width:220px;" />
+      <button class="ghost" id="btnLoadBench" type="button">Carica benchmark</button>
+      <span class="hint" id="benchStatus" style="margin:0;"></span>
+    </div>
+    <div class="hint" id="lineHint" style="margin:0 0 10px;min-height:16px;"></div>
+    <canvas id="lineCanvas" height="280" style="width:100%;height:280px;display:block;"></canvas>
+    <div class="hint" id="lineLegend" style="margin-top:8px;"></div>
+    <div class="hint" id="lineDesc" style="margin-top:10px;">Tocca un punto o passa il mouse sul grafico per i dettagli.</div>
+  </div>
+
 
   <!-- Obiettivo in primo piano -->
   <div class="card plan-goal plan-goal-redesign" data-tab="piano">
@@ -1501,7 +1523,8 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     renderCrash(d);
     renderReturns(d);
     renderProjection(d);
-    if (currentChartCfg) setLineMode(state.lineMode || "profit");
+    if (currentChartCfg && $("lineCanvas")?.getClientRects().length) setLineMode(state.lineMode || "profit");
+    if ($("homePortfolioCanvas")?.getClientRects().length) drawHomePortfolioChart();
   }
 
   function renderCrash(d) {
@@ -3050,10 +3073,77 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   }
 
   // ===== Motore grafici (linee, barre, aree impilate) =====
+
+  let homeChartHit=null;
+  let homeHoverIndex=null;
+  function drawHomePortfolioChart(){
+    const canvas=$("homePortfolioCanvas");
+    if(!canvas||!canvas.getClientRects().length||!canvas.clientWidth)return;
+    const d=derive();
+    const points=d.rows.filter(r=>Number.isFinite(r.endVal)).map(r=>({label:r.label,value:r.endVal}));
+    const current=points.length?points[points.length-1]:null;
+    const amount=$("homeChartValue"),period=$("homeChartPeriod"),detail=$("homeChartDetail");
+    if(amount)amount.textContent=current?eur(current.value):"—";
+    if(period)period.textContent=points.length+" mesi registrati";
+    const w=canvas.clientWidth,h=canvas.clientHeight||250;
+    const ctx=prepCanvas(canvas,w,h);
+    homeChartHit=null;
+    if(!points.length){
+      ctx.fillStyle="#8695ac";ctx.font="13px system-ui";ctx.textAlign="center";
+      ctx.fillText("Registra un mese per vedere l'andamento.",w/2,h/2);
+      if(detail)detail.textContent="Lo storico apparirà qui quando registri il primo mese.";
+      return;
+    }
+    const mobile=w<430;
+    const pad={left:mobile?48:62,right:mobile?10:18,top:18,bottom:30};
+    const values=points.map(p=>p.value);
+    let min=Math.min(...values),max=Math.max(...values);
+    const spread=Math.max(max-min,Math.abs(max)*0.035,1);
+    min=Math.max(0,min-spread*.15);max+=spread*.17;
+    if(min===max)max=min+1;
+    const x=i=>pad.left+(points.length===1?.5:i/(points.length-1))*(w-pad.left-pad.right);
+    const y=v=>h-pad.bottom-(v-min)/(max-min)*(h-pad.top-pad.bottom);
+    ctx.font=(mobile?"10":"11")+"px system-ui";ctx.textAlign="right";
+    for(let i=0;i<=3;i++){
+      const value=min+(max-min)*i/3,yy=y(value);
+      ctx.strokeStyle="#e6ecf5";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,yy);ctx.lineTo(w-pad.right,yy);ctx.stroke();
+      ctx.fillStyle="#8b99ad";
+      const fmt=Math.abs(value)>=1000?(value/1000).toFixed(1).replace(".",",")+"k":Math.round(value).toString();
+      ctx.fillText(fmt,pad.left-7,yy+3);
+    }
+    ctx.beginPath();points.forEach((p,i)=>{if(i===0)ctx.moveTo(x(i),y(p.value));else ctx.lineTo(x(i),y(p.value));});
+    ctx.lineTo(x(points.length-1),h-pad.bottom);ctx.lineTo(x(0),h-pad.bottom);ctx.closePath();
+    const grad=ctx.createLinearGradient(0,pad.top,0,h-pad.bottom);grad.addColorStop(0,"rgba(78,112,231,.20)");grad.addColorStop(1,"rgba(78,112,231,.01)");ctx.fillStyle=grad;ctx.fill();
+    ctx.beginPath();points.forEach((p,i)=>{if(i===0)ctx.moveTo(x(i),y(p.value));else ctx.lineTo(x(i),y(p.value));});
+    ctx.strokeStyle="#5474ed";ctx.lineWidth=2.7;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();
+    const highlight=homeHoverIndex!==null&&homeHoverIndex>=0&&homeHoverIndex<points.length?homeHoverIndex:points.length-1;
+    const hp=points[highlight],hx=x(highlight),hy=y(hp.value);
+    ctx.beginPath();ctx.arc(hx,hy,5,0,Math.PI*2);ctx.fillStyle="#5474ed";ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.stroke();
+    if(homeHoverIndex!==null){ctx.strokeStyle="rgba(84,116,237,.35)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(hx,pad.top);ctx.lineTo(hx,h-pad.bottom);ctx.stroke();}
+    ctx.fillStyle="#8796ae";ctx.font="10px system-ui";
+    ctx.textAlign="left";ctx.fillText(points[0].label,pad.left,h-7);
+    if(points.length>1){ctx.textAlign="right";ctx.fillText(points[points.length-1].label,w-pad.right,h-7);}
+    if(detail)detail.textContent=homeHoverIndex!==null?hp.label+" · "+eur(hp.value):"Ultimo mese: "+current.label+" · "+eur(current.value);
+    homeChartHit={points,x};
+  }
+  (function(){
+    const canvas=$("homePortfolioCanvas");if(!canvas)return;
+    const move=e=>{
+      if(!homeChartHit)return;
+      const rect=canvas.getBoundingClientRect(),px=e.clientX-rect.left;
+      let best=0,dist=Infinity;
+      homeChartHit.points.forEach((p,i)=>{const v=Math.abs(homeChartHit.x(i)-px);if(v<dist){dist=v;best=i;}});
+      if(best!==homeHoverIndex){homeHoverIndex=best;drawHomePortfolioChart();}
+    };
+    canvas.addEventListener("pointerdown",move);
+    canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")move(e);});
+    canvas.addEventListener("pointerleave",()=>{homeHoverIndex=null;drawHomePortfolioChart();});
+  })();
   function chartCtx() {
     const canvas = $("lineCanvas");
     if (!canvas) return null;
-    const cssW = canvas.clientWidth || 600;
+    if(!canvas.getClientRects().length||!canvas.clientWidth)return null;
+    const cssW = canvas.clientWidth;
     const cssH = canvas.clientHeight || 280;
     return { canvas, ctx: prepCanvas(canvas, cssW, cssH), cssW, cssH };
   }
@@ -3628,13 +3718,13 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     }
 
     currentChartCfg = { cfg, drawFn };
-    drawFn(cfg, null);
+    if($("lineCanvas")?.getClientRects().length)drawFn(cfg, null);
   }
 
   let resizeT;
   window.addEventListener("resize", () => {
     clearTimeout(resizeT);
-    resizeT = setTimeout(() => { renderPie(); if (currentChartCfg && currentChartCfg.drawFn) currentChartCfg.drawFn(currentChartCfg.cfg, null); }, 150);
+    resizeT = setTimeout(() => { if($("pieCanvas")?.getClientRects().length)renderPie(); drawHomePortfolioChart(); if ($("lineCanvas")?.getClientRects().length && currentChartCfg && currentChartCfg.drawFn) currentChartCfg.drawFn(currentChartCfg.cfg, null); }, 150);
   });
 
   // Tooltip: individua l'elemento sotto il mouse e ridisegna il grafico attivo con l'evidenziazione.
@@ -3759,8 +3849,9 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     window.scrollTo(0, 0);
     // I grafici su canvas vanno ridisegnati ora che la scheda è visibile (larghezza corretta).
     try {
-      render(); renderHoldings(); renderPie(); renderAllocation();
-      setLineMode(state.lineMode || "profit"); updatePreview();
+      render(); renderHoldings(); renderPie(); renderAllocation(); updatePreview();
+      if(name==="riepilogo")setLineMode(state.lineMode || "profit");
+      if(name==="home")drawHomePortfolioChart();
     } catch (e) {}
   }
   function initTabs() {
