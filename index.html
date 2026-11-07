@@ -446,6 +446,86 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
 @media(max-width:1079px) and (min-width:700px){.position-editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:699px){.position-editor-grid{grid-template-columns:minmax(0,1fr)}.position-edit-card{padding:15px}.position-edit-fields{gap:12px}.position-field input[type="text"],.position-field input[type="number"]{font-size:16px}.position-value{font-size:15px}}
 @media(max-width:360px){.position-edit-fields{grid-template-columns:minmax(0,1fr)}}
+
+/* Rendimenti, Movimenti, Piano — responsive screen layouts */
+.section-intro{margin:7px 0 23px}
+.section-intro h2{font-size:clamp(25px,3vw,34px);font-weight:800;letter-spacing:-.05em;line-height:1.2;margin:0 0 8px}
+.section-intro p{font-size:13px;color:#8090a5;margin:0;line-height:1.5}
+.yield-summary,.yield-metrics,.month-entry,.month-history,.plan-config,.plan-goal,.plan-crash{margin-bottom:18px!important}
+.yield-summary .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.yield-summary .stat{background:#f7f9fd;border:1px solid #ebeff7;border-radius:13px;min-width:0;padding:19px}
+.yield-summary .stat:nth-child(3){background:#edf3ff;border-color:#dbe6ff}
+.yield-summary .stat:nth-child(3) .v{color:#3559dc;font-size:30px}
+.yield-metrics{background:linear-gradient(135deg,#fff,#f9fbff)}
+.yield-metrics .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.yield-metrics .stat{min-width:0}
+.yield-metrics .hint{line-height:1.6;margin-bottom:20px}
+.yield-summary .stat .v,.yield-metrics .stat .v{font-size:23px;overflow-wrap:anywhere}
+.yield-summary .stat .k,.yield-metrics .stat .k{font-size:10px;line-height:1.5}
+.month-entry{background:linear-gradient(125deg,#fff,#f7f9ff)}
+.month-entry>label,.month-entry>input{max-width:570px}
+.month-entry>#btnAdd{width:auto!important;min-width:245px}
+.month-history>.table-wrap{border:0;overflow:visible}
+.month-history .table-wrap>table{display:block;width:100%;min-width:0}
+.month-history table thead{display:none}
+.month-history table tbody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.month-history table tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;align-items:start;padding:18px;background:#fcfdff;border:1px solid #e4eaf4;border-radius:14px;min-width:0}
+.month-history table tbody td{display:flex;min-width:0;flex-direction:column;align-items:flex-start;border:0!important;padding:0!important;white-space:normal;text-align:left!important;overflow-wrap:anywhere;font-size:12px}
+.month-history table tbody td:before{font-size:10px;color:#8896aa;font-weight:700;letter-spacing:.02em;margin-bottom:5px}
+.month-history table tbody td:nth-child(1){grid-column:1/-1;padding-bottom:10px!important;border-bottom:1px solid #e9edf5!important;font-weight:800;font-size:16px;display:block}
+.month-history table tbody td:nth-child(1):before{display:none}
+.month-history table tbody td:nth-child(2):before{content:"Pre-versamento"}
+.month-history table tbody td:nth-child(3):before{content:"Performance"}
+.month-history table tbody td:nth-child(4):before{content:"Versato"}
+.month-history table tbody td:nth-child(5):before{content:"Investito"}
+.month-history table tbody td:nth-child(6):before{content:"Accantonato"}
+.month-history table tbody td:nth-child(7):before{content:"Da liquidità"}
+.month-history table tbody td:nth-child(8):before{content:"Liquidità disponibile"}
+.month-history table tbody td:nth-child(9):before{content:"Portafoglio finale"}
+.month-history table tbody td:nth-child(10):before{content:"Patrimonio totale"}
+.month-history table tbody td:nth-child(10){color:#355bd7;font-weight:800;font-size:16px}
+.month-history table tbody td:nth-child(11){grid-column:1/-1;display:block;border-top:1px solid #edf0f6!important;padding-top:10px!important}
+.month-history table .rowbtns{display:flex;justify-content:flex-end;gap:7px}
+.month-history table .rowbtns button{background:#f1f5ff;border:1px solid #e2e9fa;border-radius:9px;color:#3c5f98;padding:7px 10px;font-size:13px}
+.month-history table .rowbtns button.del{background:#fff1f4;color:#c54260;border-color:#f6dce3}
+.month-history table .rowbtns button:disabled{opacity:.35}
+.month-history table tbody tr.totrow{grid-column:1/-1;background:#eff4ff;border-color:#dbe5fc}
+.month-history table tbody tr.totrow td:before{display:none}
+.month-history table tbody tr.totrow td:nth-child(1){font-size:17px}
+.month-history table tbody tr.editing{background:#f5f8ff;border-color:#9bb4f6}
+.month-history table tbody tr.editing td:nth-child(1){display:flex}
+.month-history table tbody tr.editing input{min-width:0;width:100%;max-width:100%;font-size:15px;margin:0}
+.month-history table tbody tr.editing td:nth-child(8){grid-column:1/-1}
+.month-history table tbody tr.editing td:nth-child(8):before{display:none}
+.month-history table tbody tr.editing td:nth-child(9){grid-column:1/-1}
+.month-history .toolbar{margin-top:18px;gap:9px}
+.history-count{font-size:12px;font-weight:600;color:#8897ad;margin-left:auto;letter-spacing:0}
+.plan-config .row2,.plan-config .row3,.plan-goal .row3{gap:14px}
+.plan-config .row2>div,.plan-config .row3>div,.plan-goal .row3>div,.plan-crash .row3>div{background:#f8faff;border:1px solid #e7edf7;border-radius:12px;padding:14px;min-width:0}
+.plan-config input,.plan-goal input,.plan-crash input{background:#fff!important;margin:0!important}
+.plan-config .hint{margin:15px 0 0;line-height:1.6}
+.plan-goal #projInfo{padding:18px;border-radius:12px;line-height:1.6;background:#edf3ff;border-color:#dce6ff}
+.plan-crash>.hint{line-height:1.6;max-width:940px;margin-bottom:17px}
+.plan-crash #crashLevels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.plan-crash #crashLevels>.note{grid-column:1/-1}
+.plan-crash .lvl{background:#f9fbff;border:1px solid #e5ebf5;border-radius:12px}
+details[data-tab="piano"]{background:#fff;border:1px solid #e7edf5;border-radius:14px;padding:18px 22px;max-width:none!important;margin-bottom:32px!important}
+details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
+@media(max-width:1150px){.month-history table tbody{grid-template-columns:1fr}.yield-metrics .grid{grid-template-columns:repeat(2,minmax(0,1fr))}.plan-crash #crashLevels{grid-template-columns:1fr}}
+@media(max-width:700px){.section-intro{margin:3px 0 17px}.section-intro h2{font-size:26px}
+.yield-summary .grid,.yield-metrics .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.yield-summary .stat,.yield-metrics .stat{padding:13px}
+.yield-summary .stat:nth-child(3){grid-column:1/-1}
+.yield-summary .stat .v,.yield-metrics .stat .v{font-size:18px}
+.yield-summary .stat:nth-child(3) .v{font-size:26px}
+.month-entry>#btnAdd{width:100%!important}
+.month-history table tbody tr{padding:14px;gap:11px}
+.month-history .toolbar button{flex:1 1 45%;font-size:12px}
+.plan-config .row2,.plan-config .row3,.plan-goal .row3,.plan-crash .row3{grid-template-columns:1fr}
+.plan-crash .row2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.plan-crash #crashLevels{grid-template-columns:1fr}
+}
+@media(max-width:375px){.yield-summary .grid,.yield-metrics .grid{grid-template-columns:1fr}.yield-summary .stat:nth-child(3){grid-column:auto}}
 </style>
 </head>
 <body>
