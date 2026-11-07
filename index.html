@@ -343,12 +343,40 @@ tr.totrow,tr.totrow:hover{background:#eef4ff}
 .table-wrap th:last-child,.table-wrap td:last-child{padding-right:14px}
 @media(max-width:640px){body{padding:18px 12px 104px}.app-header{margin-bottom:20px;gap:8px}.brand-mark{width:41px;height:41px;border-radius:12px;font-size:19px}h1{font-size:22px}.subtitle{font-size:11px;max-width:245px;line-height:1.35}.header-status{display:none}.card,#suggestion{padding:17px;border-radius:17px}.stat .v{font-size:21px}.tabbar{bottom:0;border-radius:16px 16px 0 0;width:100%;max-width:none;border-bottom:none;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}.toolbar button{flex:1 1 auto}}
 @media(prefers-reduced-motion:reduce){button,.tabbtn{transition:none}}
+/* Dashboard layout v2: substantive information hierarchy */
+.dashboard-intro{display:flex;align-items:end;justify-content:space-between;gap:24px;margin:10px 0 18px}
+.eyebrow{display:block;color:#6b7d9a;font-size:10px;letter-spacing:.15em;font-weight:800;margin-bottom:10px}
+.dashboard-intro h2{font-size:clamp(23px,3vw,34px);letter-spacing:-.05em;line-height:1.15;margin:0 0 8px;font-weight:800}
+.dashboard-intro p{color:var(--muted);font-size:14px;margin:0}
+.dashboard-link{white-space:nowrap;background:#fff;color:#315bd1;border:1px solid #dce5f4;box-shadow:none}
+.dashboard-link:hover{background:#f1f5ff}
+.dashboard-hero{background:linear-gradient(125deg,#12294f,#20457f 72%,#3265ab);color:white;border-radius:25px;padding:31px 36px;margin-bottom:24px;box-shadow:0 18px 38px #183b7230;position:relative;overflow:hidden}
+.dashboard-hero:before{content:"";position:absolute;width:420px;height:420px;right:-130px;top:-230px;border:1px solid #ffffff2c;border-radius:50%;box-shadow:0 0 0 55px #ffffff08,0 0 0 110px #ffffff07;pointer-events:none}
+.hero-top,.hero-bottom{position:relative;display:flex;justify-content:space-between;gap:14px}
+.hero-top{color:#c9d9f1;font-size:13px;font-weight:600}
+.hero-caption{border:1px solid #ffffff45;border-radius:99px;padding:5px 11px;font-size:11px}
+.hero-number{position:relative;font-size:clamp(37px,6vw,60px);letter-spacing:-.065em;font-weight:800;margin:17px 0 29px;font-variant-numeric:tabular-nums}
+.hero-bottom{border-top:1px solid #ffffff30;padding-top:19px;justify-content:flex-start;gap:clamp(18px,5vw,72px);flex-wrap:wrap}
+.hero-bottom>div{display:flex;flex-direction:column;gap:7px}
+.hero-bottom span{font-size:12px;color:#b6cbe7}
+.hero-bottom strong{font-size:20px;font-weight:750;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.hero-footnote{position:relative;font-size:10px;color:#b6cbe7;margin-top:22px;max-width:660px;line-height:1.5}
+.dashboard-section-title{display:flex;justify-content:space-between;margin:30px 0 15px}
+.dashboard-section-title h2{font-size:23px;letter-spacing:-.04em;margin:0}
+.portfolio-holdings{margin-bottom:20px!important}
+.portfolio-allocation{margin-bottom:20px!important}
+#suggestion{margin-top:20px}
+@media(min-width:900px){.portfolio-holdings{padding:28px 30px}.portfolio-allocation{padding:28px 30px}.portfolio-holdings h2,.portfolio-allocation h2{font-size:19px}}
+@media(max-width:640px){.dashboard-intro{display:block;margin:4px 0 18px}.dashboard-intro h2{font-size:26px}.dashboard-intro p{font-size:12px}.dashboard-link{margin-top:15px;padding:9px 12px;font-size:12px}.dashboard-hero{padding:23px 21px;border-radius:20px;margin-bottom:20px}.hero-number{font-size:41px;margin:18px 0 25px}.hero-bottom{display:grid;grid-template-columns:1fr 1fr;gap:19px 12px}.hero-bottom strong{font-size:18px}.hero-caption{font-size:10px}.dashboard-section-title{margin-top:25px}.dashboard-section-title h2{font-size:21px}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="app-header"><div class="app-brand"><div class="brand-mark" aria-hidden="true">↗</div><div><h1>PAC ETF</h1><div class="subtitle">Il tuo patrimonio Scalable, tutto sotto controllo</div></div></div><span class="header-status">● Portfolio dashboard</span></header>
 
+  <section class="dashboard-intro" data-tab="home"><div><div class="eyebrow">OVERVIEW · SCALABLE CAPITAL</div><h2>Il tuo patrimonio, a colpo d'occhio.</h2><p>Andamento, capitale versato e investimenti in un unico posto.</p></div><button type="button" class="dashboard-link" id="btnGoDetails">Esplora i rendimenti <span aria-hidden="true">↗</span></button></section>
+  <section class="dashboard-hero" data-tab="home"><div class="hero-top"><span>Patrimonio totale</span><span class="hero-caption">Storico PAC ETF</span></div><div class="hero-number" id="heroTotal">—</div><div class="hero-bottom"><div><span>Profitto cumulato</span><strong id="heroProfit">—</strong></div><div><span>Capitale versato</span><strong id="heroInvested">—</strong></div><div><span>Rendimento XIRR</span><strong id="heroXirr">—</strong></div></div><div class="hero-footnote">Valori calcolati dallo storico mensile registrato, non necessariamente dal saldo Scalable in tempo reale.</div></section>
+  <div class="dashboard-section-title" data-tab="home"><div><span class="eyebrow">PORTAFOGLIO</span><h2>Le tue posizioni</h2></div></div>
   <nav class="tabbar" id="tabbar">
     <button type="button" class="tabbtn active" data-go="home"><span class="tico">🏠</span>Home</button>
     <button type="button" class="tabbtn" data-go="riepilogo"><span class="tico">📊</span>Riepilogo</button>
@@ -399,7 +427,7 @@ tr.totrow,tr.totrow:hover{background:#eef4ff}
     </div>
 
   <!-- Allocazione: torta + obiettivo -->
-  <div class="card" style="margin-bottom:16px;" data-tab="home">
+  <div class="card portfolio-allocation" style="margin-bottom:16px;" data-tab="home">
     <h2><span class="ico">🥧</span> Allocazione &amp; obiettivo</h2>
     <div style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
@@ -425,7 +453,7 @@ tr.totrow,tr.totrow:hover{background:#eef4ff}
   </div>
 
   <!-- Portafoglio ETF con prezzi automatici -->
-  <div class="card" style="margin-bottom:16px;" data-tab="home">
+  <div class="card portfolio-holdings" style="margin-bottom:16px;" data-tab="home">
     <h2><span class="ico">💹</span> Portafoglio ETF — prezzi automatici</h2>
     <div class="hint">Sincronizza prezzi e quantità dal tuo conto Scalable tramite ChatGPT. Gli asset manuali restano modificabili.</div>
     <div class="table-wrap">
@@ -987,7 +1015,17 @@ tr.totrow,tr.totrow:hover{background:#eef4ff}
       '</tr>';
   }
 
-  function render() {
+  function renderDashboardHero() {
+    const ids = [["sTot","heroTotal"],["sPerf","heroProfit"],["sInv","heroInvested"],["rXirr","heroXirr"]];
+    for (const [source,target] of ids) {
+      const from=document.getElementById(source),to=document.getElementById(target);
+      if(from&&to){to.textContent=from.textContent;to.className=from.classList.contains("neg")?"neg":from.classList.contains("pos")?"pos":"";}
+    }
+  }
+  const heroObserver=new MutationObserver(()=>renderDashboardHero());
+  for(const id of ["sTot","sPerf","sInv","rXirr"]){const el=document.getElementById(id);if(el)heroObserver.observe(el,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["class"]});}
+  document.getElementById("btnGoDetails")?.addEventListener("click",()=>switchTab("riepilogo"));
+    function render() {
     const d = derive();
 
     // summary
