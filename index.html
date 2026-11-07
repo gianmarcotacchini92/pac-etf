@@ -368,6 +368,34 @@ tr.totrow,tr.totrow:hover{background:#eef4ff}
 #suggestion{margin-top:20px}
 @media(min-width:900px){.portfolio-holdings{padding:28px 30px}.portfolio-allocation{padding:28px 30px}.portfolio-holdings h2,.portfolio-allocation h2{font-size:19px}}
 @media(max-width:640px){.dashboard-intro{display:block;margin:4px 0 18px}.dashboard-intro h2{font-size:26px}.dashboard-intro p{font-size:12px}.dashboard-link{margin-top:15px;padding:9px 12px;font-size:12px}.dashboard-hero{padding:23px 21px;border-radius:20px;margin-bottom:20px}.hero-number{font-size:41px;margin:18px 0 25px}.hero-bottom{display:grid;grid-template-columns:1fr 1fr;gap:19px 12px}.hero-bottom strong{font-size:18px}.hero-caption{font-size:10px}.dashboard-section-title{margin-top:25px}.dashboard-section-title h2{font-size:21px}}
+
+/* v3 fintech app layout */
+@media(min-width:1050px){
+body{padding:0 26px 50px 266px;background:#f6f8fc}
+.wrap{max-width:1460px;padding-top:30px}
+.tabbar{position:fixed;left:0;top:0;bottom:0;transform:none;width:238px;max-width:none;height:100vh;border:0;border-right:1px solid #e5ebf4;border-radius:0;padding:100px 14px 24px;background:#fff;display:flex;flex-direction:column;justify-content:flex-start;gap:9px;box-shadow:none;z-index:60}
+.tabbar:before{content:"PAC  /  ETF";position:absolute;top:37px;left:26px;font-size:22px;letter-spacing:-.06em;font-weight:850;color:#24467e}
+.tabbtn{flex:0 0 auto;flex-direction:row;justify-content:flex-start;gap:15px;text-align:left;font-size:14px;padding:15px 16px;font-weight:650}
+.tabbtn .tico{font-size:19px}
+.dashboard-hero{background:#fff;color:#172844;border:1px solid #e3eaf4;box-shadow:0 5px 22px #253e6310;padding:25px 30px;margin-bottom:20px;border-radius:19px}
+.dashboard-hero:before{display:none}
+.hero-top,.hero-bottom span,.hero-footnote{color:#70809a}
+.hero-caption{background:#eff5ff;border:1px solid #dce8fa;color:#4267a5}
+.hero-number{font-size:48px;margin:13px 0 20px}
+.hero-bottom{border-top:1px solid #e7ecf5}
+.dashboard-content-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);grid-template-areas:"chart allocation" "holdings holdings";gap:18px;align-items:start}
+.dashboard-chart{grid-area:chart;min-width:0}
+.portfolio-allocation{grid-area:allocation;min-width:0}
+.portfolio-holdings{grid-area:holdings;min-width:0}
+.dashboard-content-grid>.card{margin:0!important}
+.dashboard-chart #chartModes button{font-size:11px;padding:8px 10px}
+.dashboard-chart #lineCanvas{height:310px!important}
+.portfolio-allocation canvas{width:190px!important;height:190px!important}
+.portfolio-allocation>div{gap:10px!important}
+.portfolio-allocation>div>div{min-width:0!important}
+}
+@media(min-width:1050px) and (max-width:1390px){.portfolio-allocation>div{display:block!important}}
+@media(max-width:1049px){.dashboard-content-grid{display:flex;flex-direction:column;gap:16px}.dashboard-content-grid>.card{width:100%;margin:0!important}}
 </style>
 </head>
 <body>
@@ -427,7 +455,32 @@ tr.totrow,tr.totrow:hover{background:#eef4ff}
     </div>
 
   <!-- Allocazione: torta + obiettivo -->
-  <div class="card portfolio-allocation" style="margin-bottom:16px;" data-tab="home">
+  <div class="dashboard-content-grid" data-tab="home">
+  <!-- Grafici -->
+  <div class="card dashboard-chart" style="margin-bottom:16px;" data-dashboard-panel="home">
+    <h2><span class="ico">📈</span> Grafici</h2>
+    <div id="chartModes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+      <button id="btnCProfit">Profitti generati</button>
+      <button id="btnCVersato" class="ghost">Versato vs Patrimonio</button>
+      <button id="btnCRend" class="ghost">Rendimento %</button>
+      <button id="btnCPerf" class="ghost">Performance mensile</button>
+      <button id="btnCComp" class="ghost">Composizione patrimonio</button>
+      <button id="btnCPl" class="ghost">P/L per asset</button>
+      <button id="btnCProj" class="ghost">Proiezione obiettivo</button>
+      <button id="btnCBench" class="ghost">Benchmark</button>
+    </div>
+    <div id="chartControls" style="display:none;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+      <input type="text" id="benchSymbol" placeholder="Ticker indice (es. SWDA.MI)" style="max-width:220px;" />
+      <button class="ghost" id="btnLoadBench" type="button">Carica benchmark</button>
+      <span class="hint" id="benchStatus" style="margin:0;"></span>
+    </div>
+    <div class="hint" id="lineHint" style="margin:0 0 10px;min-height:16px;"></div>
+    <canvas id="lineCanvas" height="280" style="width:100%;height:280px;display:block;"></canvas>
+    <div class="hint" id="lineLegend" style="margin-top:8px;"></div>
+    <div class="hint" id="lineDesc" style="margin-top:10px;">Passa il mouse sul grafico per i dettagli.</div>
+  </div>
+
+  <div class="card portfolio-allocation" style="margin-bottom:16px;" data-dashboard-panel="home">
     <h2><span class="ico">🥧</span> Allocazione &amp; obiettivo</h2>
     <div style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
@@ -453,7 +506,7 @@ tr.totrow,tr.totrow:hover{background:#eef4ff}
   </div>
 
   <!-- Portafoglio ETF con prezzi automatici -->
-  <div class="card portfolio-holdings" style="margin-bottom:16px;" data-tab="home">
+  <div class="card portfolio-holdings" style="margin-bottom:16px;" data-dashboard-panel="home">
     <h2><span class="ico">💹</span> Portafoglio ETF — prezzi automatici</h2>
     <div class="hint">Sincronizza prezzi e quantità dal tuo conto Scalable tramite ChatGPT. Gli asset manuali restano modificabili.</div>
     <div class="table-wrap">
@@ -483,6 +536,7 @@ tr.totrow,tr.totrow:hover{background:#eef4ff}
     
   </div>
 
+  </div>
   <!-- Suggerimento -->
   <div id="suggestion" style="margin-bottom:16px;" data-tab="home">
     <div class="sug-head">Suggerimento (anteprima in tempo reale)</div>
@@ -533,30 +587,6 @@ tr.totrow,tr.totrow:hover{background:#eef4ff}
       </div>
     </div>
     <div class="note" id="projInfo" style="margin-top:6px;">Imposta un obiettivo per vedere la stima.</div>
-  </div>
-
-  <!-- Grafici -->
-  <div class="card" style="margin-bottom:16px;" data-tab="riepilogo">
-    <h2><span class="ico">📈</span> Grafici</h2>
-    <div id="chartModes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-      <button id="btnCProfit">Profitti generati</button>
-      <button id="btnCVersato" class="ghost">Versato vs Patrimonio</button>
-      <button id="btnCRend" class="ghost">Rendimento %</button>
-      <button id="btnCPerf" class="ghost">Performance mensile</button>
-      <button id="btnCComp" class="ghost">Composizione patrimonio</button>
-      <button id="btnCPl" class="ghost">P/L per asset</button>
-      <button id="btnCProj" class="ghost">Proiezione obiettivo</button>
-      <button id="btnCBench" class="ghost">Benchmark</button>
-    </div>
-    <div id="chartControls" style="display:none;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
-      <input type="text" id="benchSymbol" placeholder="Ticker indice (es. SWDA.MI)" style="max-width:220px;" />
-      <button class="ghost" id="btnLoadBench" type="button">Carica benchmark</button>
-      <span class="hint" id="benchStatus" style="margin:0;"></span>
-    </div>
-    <div class="hint" id="lineHint" style="margin:0 0 10px;min-height:16px;"></div>
-    <canvas id="lineCanvas" height="280" style="width:100%;height:280px;display:block;"></canvas>
-    <div class="hint" id="lineLegend" style="margin-top:8px;"></div>
-    <div class="hint" id="lineDesc" style="margin-top:10px;">Passa il mouse sul grafico per i dettagli.</div>
   </div>
 
   <!-- Punti d'ingresso crolli -->
