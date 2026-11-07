@@ -295,12 +295,59 @@
   .tabbtn .tico { font-size: 20px; line-height: 1; }
   .tabbtn.active { color: var(--accent); background: rgba(56,189,248,.12); }
   .tabbtn:active { transform: translateY(1px); }
+
+/* Modern fintech visual refresh */
+:root{--bg:#f4f7fb;--card:#fff;--card2:#f2f5fa;--accent:#3567e8;--accent2:#5d86f4;--text:#16233b;--muted:#66758d;--good:#087f65;--warn:#a86a0b;--bad:#cf435b;--border:#e2e8f2}
+body{font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(ellipse 65% 340px at 12% -80px,#dfeaff 0%,transparent 85%),#f4f7fb;color:var(--text);padding:32px 22px 104px;letter-spacing:-.012em}
+.wrap{max-width:1280px}
+.app-header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:28px}
+.app-brand{display:flex;align-items:center;gap:14px}
+.brand-mark{width:48px;height:48px;border-radius:15px;background:#3567e8;color:#fff;display:grid;place-items:center;font-size:23px;font-weight:800;box-shadow:0 10px 24px #3567e82b}
+h1{color:var(--text);background:none;-webkit-text-fill-color:var(--text);text-align:left;font-size:25px;font-weight:780;letter-spacing:-.045em;margin:0 0 2px}
+.subtitle{margin:0;text-align:left;font-size:13px;color:var(--muted)}
+.header-status{font-size:12px;color:#087f65;background:#e7f7f1;border:1px solid #c6e9dd;border-radius:999px;padding:9px 14px;font-weight:700;white-space:nowrap}
+.card,#suggestion{border:1px solid var(--border);background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 22px rgba(32,55,92,.045)}
+.card h2{font-size:17px;letter-spacing:-.025em;font-weight:750;margin-bottom:19px}
+.card h2 .ico{font-size:19px}
+.grid{gap:18px;margin-bottom:18px}
+.stat,.chip,.lvl{background:#f6f8fc;border:1px solid #edf0f6;border-radius:14px}
+.stat{padding:18px;text-align:left}
+.stat .k,.chip .k{font-size:11px;letter-spacing:.07em}
+.stat .v{font-size:25px;font-weight:780;letter-spacing:-.045em}
+#suggestion{background:linear-gradient(125deg,#f0f5ff,#fff 72%)}
+.sug-main{letter-spacing:-.05em}
+button{background:#3567e8;color:#fff;border-radius:11px;padding:11px 16px;box-shadow:0 3px 8px rgba(53,103,232,.12);transition:background .15s,transform .15s}
+button:hover{background:#2856cd;opacity:1}
+button.ghost{background:#fff;color:#3b4b65;border:1px solid #dbe3f0;box-shadow:none}
+button.ghost:hover{background:#f4f7fc;color:#1c2b43}
+input[type="text"],input[type="number"],input[type="date"],textarea,select{background:#f8faff;color:var(--text);border:1px solid #dfe6f1;border-radius:10px;box-shadow:none}
+input:focus,textarea:focus,select:focus{border-color:#3567e8;outline:3px solid #3567e820}
+label{font-weight:650;letter-spacing:.045em}
+table{font-variant-numeric:tabular-nums}
+th{background:#f7f9fc;color:#68768d;font-size:10px;letter-spacing:.07em}
+th,td{border-bottom:1px solid #e9eef5;padding:12px 10px}
+tbody tr:hover{background:#f7faff}
+tr.totrow,tr.totrow:hover{background:#eef4ff}
+.note{background:#edf4ff;border-color:#d6e6ff;color:#31517e}
+.note.bad{background:#fff0f2;border-color:#ffd6dd;color:#ad2945}
+.note.warn{background:#fff7e7;border-color:#ffe2aa;color:#91600c}
+.badge.safe{background:#e3f6ed;color:#087f65}
+.tabbar{background:rgba(255,255,255,.96);border:1px solid #dce4f0;border-radius:18px;bottom:16px;max-width:650px;padding:8px;box-shadow:0 10px 45px #22395c25;backdrop-filter:blur(20px)}
+.tabbtn{color:#6e7d92;font-size:11px;border-radius:12px;box-shadow:none}
+.tabbtn:hover{background:#f1f5fc}
+.tabbtn.active{color:#285bd7;background:#eaf1ff}
+.tabbtn .tico{font-size:19px}
+.table-wrap{border:1px solid #e8edf5;border-radius:13px}
+.table-wrap table{min-width:max-content}
+.table-wrap th:first-child,.table-wrap td:first-child{padding-left:14px}
+.table-wrap th:last-child,.table-wrap td:last-child{padding-right:14px}
+@media(max-width:640px){body{padding:18px 12px 104px}.app-header{margin-bottom:20px;gap:8px}.brand-mark{width:41px;height:41px;border-radius:12px;font-size:19px}h1{font-size:22px}.subtitle{font-size:11px;max-width:245px;line-height:1.35}.header-status{display:none}.card,#suggestion{padding:17px;border-radius:17px}.stat .v{font-size:21px}.tabbar{bottom:0;border-radius:16px 16px 0 0;width:100%;max-width:none;border-bottom:none;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}.toolbar button{flex:1 1 auto}}
+@media(prefers-reduced-motion:reduce){button,.tabbtn{transition:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Gestione PAC ETF</h1>
-  <div class="subtitle">Piano di accumulo con quota d'acquisto suggerita in base alla performance mensile <span style="opacity:.6;">· build 2026-07-08a</span></div>
+  <header class="app-header"><div class="app-brand"><div class="brand-mark" aria-hidden="true">↗</div><div><h1>PAC ETF</h1><div class="subtitle">Il tuo patrimonio Scalable, tutto sotto controllo</div></div></div><span class="header-status">● Portfolio dashboard</span></header>
 
   <nav class="tabbar" id="tabbar">
     <button type="button" class="tabbtn active" data-go="home"><span class="tico">🏠</span>Home</button>
@@ -380,7 +427,7 @@
   <!-- Portafoglio ETF con prezzi automatici -->
   <div class="card" style="margin-bottom:16px;" data-tab="home">
     <h2><span class="ico">💹</span> Portafoglio ETF — prezzi automatici</h2>
-    <div class="hint">Inserisci <b>ISIN</b> e <b>quantità</b>: i prezzi vengono recuperati da Yahoo Finance tramite un proxy pubblico (serve per aggirare il blocco CORS del browser). Per risultati più affidabili puoi indicare direttamente il <b>ticker</b> di borsa (es. <code>SWDA.MI</code>, <code>VWCE.DE</code>).</div>
+    <div class="hint">Sincronizza prezzi e quantità dal tuo conto Scalable tramite ChatGPT. Gli asset manuali restano modificabili.</div>
     <div class="table-wrap">
       <table>
         <thead>
