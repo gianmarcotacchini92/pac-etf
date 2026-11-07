@@ -2439,6 +2439,22 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   // L'unione dei mesi evita che uno storico di settembre cancelli ottobre.
   // In presenza di due versioni dello stesso mese prevale la copia remota,
   // salvo una modifica esplicita non ancora sincronizzata su questo dispositivo.
+  const SYNC_PROTOCOL_VERSION=2;
+  function monthKeysForSync(months){
+    return [...new Set((Array.isArray(months)?months:[]).map(monthIdentity).filter(Boolean))].sort();
+  }
+  function protectedCloudDocument(snapshot,previous){
+    const now=Date.now();
+    const keys=monthKeysForSync(snapshot.months);
+    const priorKeys=Array.isArray(previous?.monthKeys)?previous.monthKeys:[];
+    if(priorKeys.some(k=>!keys.includes(k)))throw Error("Bloccata una scrittura che eliminerebbe mesi dal server.");
+    return {state:JSON.stringify(snapshot),updatedAt:now,client:CLIENT_ID,savedAt:now,
+      syncProtocol:SYNC_PROTOCOL_VERSION,monthKeys:keys,monthCount:keys.length};
+  }
+  function cloudNeedsProtocolUpgrade(remoteDoc) {
+    return !remoteDoc||remoteDoc.syncProtocol!==SYNC_PROTOCOL_VERSION||
+      !Array.isArray(remoteDoc.monthKeys)||remoteDoc.monthCount!==remoteDoc.monthKeys.length;
+  }
   function mergeHistoryMonths(remoteMonths, localMonths, localWins=false) {
     const remote=Array.isArray(remoteMonths)?remoteMonths:[];
     const local=Array.isArray(localMonths)?localMonths:[];
@@ -2508,8 +2524,8 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
           const joined=mergeHistoryMonths(fresh?.months,localMonths);
           const source=fresh||state;
           const updated={...source,months:joined};
-          if(!fresh||joined.length>fresh.months.length){
-            tx.set(currentRef,{state:JSON.stringify(updated),updatedAt:Date.now(),client:CLIENT_ID,savedAt:Date.now()});
+          if(!fresh||joined.length>fresh.months.length||cloudNeedsProtocolUpgrade(freshSnap.exists()?freshSnap.data():null)){
+            tx.set(currentRef,protectedCloudDocument(updated,freshSnap.exists()?freshSnap.data():null));
           }
           return updated;
         });
@@ -2565,8 +2581,8 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
         // Solo un'azione vera dell'utente può inviare modifiche a posizioni/configurazione.
         const base=remote?(dirty?candidate:remote):candidate;
         const merged={...base,months:mergeHistoryMonths(remote?.months,candidate.months,dirty)};
-        const changed=!remote||JSON.stringify(merged)!==JSON.stringify(remote);
-        if(changed)tx.set(cloud.docRef,{state:JSON.stringify(merged),updatedAt:Date.now(),client:CLIENT_ID,savedAt:Date.now()});
+        const changed=!remote||JSON.stringify(merged)!==JSON.stringify(remote)||cloudNeedsProtocolUpgrade(remoteData);
+        if(changed)tx.set(cloud.docRef,protectedCloudDocument(merged,remoteData));
         return {merged,changed};
       });
       if(generation!==cloud.syncGeneration)return;
@@ -2576,11 +2592,11 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
       }else{
         // Ulteriori modifiche effettuate durante il salvataggio: non sovrascriverle.
         cloud.localDirty=true;
-        scheduleCloudUpload();
+        setTimeout(()=>{if(generation===cloud.syncGeneration)scheduleCloudUpload();},10);
       }
     }catch(e){
       fbStatus("Sincronizzazione sospesa: "+(e?.message||e)+". I dati locali sono stati conservati.","bad");
-    }finally{cloud.inFlight=false;if(cloud.localDirty&&cloud.ready&&generation===cloud.syncGeneration)scheduleCloudUpload();}
+    }finally{cloud.inFlight=false;}
   }
 
   function applyMergedState(merged,timestamp,message) {
@@ -2625,7 +2641,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
         cloud.ready=true;
         // Non usare il timestamp locale per decidere chi sovrascrive il cloud.
         // Al primo accesso il server resta autoritativo per gli asset; i mesi mancanti vengono reintegrati.
-        if(!remote||mergeHistoryMonths(remote.months,state.months).length>remote.months.length){
+        if(!remote||cloudNeedsProtocolUpgrade(snap.exists()?snap.data():null)||mergeHistoryMonths(remote.months,state.months).length>remote.months.length){
           scheduleCloudUpload();
         }else if(cloud.localDirty){
           scheduleCloudUpload();
