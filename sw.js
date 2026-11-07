@@ -1,5 +1,5 @@
 // PAC ETF offline support. Network-first HTML ensures new releases appear promptly.
-const CACHE = "pac-etf-v8";
+const CACHE = "pac-etf-v9";
 const ASSETS = ["./index.html","./manifest.webmanifest","./icon-192.png","./icon-512.png"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
