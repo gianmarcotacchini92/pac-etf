@@ -396,6 +396,26 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
 .chart-heading{align-items:flex-start;flex-direction:column}.chart-mode-select{max-width:none;width:100%}
 }
 .rebalance-tools{border-top:1px solid #e8edf5;padding-top:14px;margin-top:14px}.rebalance-tools>summary{cursor:pointer;color:#4263eb;font-size:12px;font-weight:750}.rebalance-tools[open]>label{margin-top:14px}.rebalance-tools[open] .table-wrap{margin-top:10px}
+
+/* Allocation donut: responsive, readable, simplified */
+.portfolio-allocation{min-width:0}
+.portfolio-allocation>div{display:flex!important;flex-direction:column;align-items:stretch!important;gap:4px!important}
+.portfolio-allocation>div>div{width:100%;min-width:0!important;flex:0 1 auto!important}
+.portfolio-allocation canvas{display:block;margin:auto;width:min(280px,100%)!important;height:auto!important;aspect-ratio:1}
+#pieLegend{display:flex;flex-direction:column;gap:5px;margin:12px 0 16px!important}
+.pie-leg{display:flex;align-items:center;gap:10px;padding:10px 9px;border-radius:10px;min-width:0;transition:background .12s}
+.pie-leg:hover,.pie-leg.active{background:#f1f5ff}
+.allocation-dot{display:block;width:11px;height:11px;flex:0 0 11px;border-radius:50%}
+.allocation-label{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.allocation-label strong{font-size:12px;line-height:1.25;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.allocation-label small{font-size:11px;color:#8492a8}
+.allocation-pct{font-size:13px;color:#243653;font-variant-numeric:tabular-nums}
+.allocation-minor{margin:7px 4px 0;padding:10px 0;border-top:1px solid #e9edf5}
+.allocation-minor>summary{font-size:11px;font-weight:700;color:#4366d8;cursor:pointer}
+.allocation-minor-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;padding:7px 0;color:#77849a}
+.allocation-minor-row b{color:#394966}
+@media(min-width:1080px){.portfolio-allocation>div{display:flex!important}}
+@media(min-width:1080px) and (max-width:1410px){.portfolio-allocation>div{display:flex!important}}
 </style>
 </head>
 <body>
@@ -2374,92 +2394,67 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
   let pieSlices = null; // {items, cx, cy, r, total} per l'interattività
   let pieHover = null;  // indice fetta sotto il mouse
 
+
   function renderPie() {
-    const canvas = $("pieCanvas");
-    if (!canvas) return;
-    const items = state.holdings
-      .map((h, i) => ({ label: h.name || h.symbol || h.isin || ("ETF " + (i + 1)), value: num(h.qty) * num(h.price), color: PALETTE[i % PALETTE.length] }))
-      .filter(it => it.value > 0)
-      .sort((a, b) => b.value - a.value); // dal più grande al più piccolo
-    const legend = $("pieLegend");
-    const hint = $("pieHint");
-    const size = 280;
-    const ctx = prepCanvas(canvas, size, size);
-    if (!items.length) {
-      pieSlices = null; pieHover = null;
-      legend.innerHTML = "";
-      hint.style.display = "";
-      ctx.strokeStyle = "rgba(148,163,184,.3)";
-      ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 6, 0, Math.PI * 2); ctx.stroke();
+    const canvas=$("pieCanvas"),legend=$("pieLegend"),hint=$("pieHint");
+    if(!canvas||!legend||!hint)return;
+    const size=280,cx=140,cy=140,r=128;
+    const ctx=prepCanvas(canvas,size,size);
+    const all=state.holdings.map((h,i)=>({label:h.name||h.symbol||h.isin||("Asset "+(i+1)),value:num(h.qty)*num(h.price)}))
+      .filter(it=>Number.isFinite(it.value)&&it.value>0).sort((a,b)=>b.value-a.value);
+    pieHover=null;
+    if(!all.length){
+      pieSlices=null;legend.innerHTML="";hint.style.display="";
+      ctx.lineWidth=24;ctx.strokeStyle="#e7ecf6";ctx.beginPath();ctx.arc(cx,cy,100,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle="#8594aa";ctx.textAlign="center";ctx.font="600 13px system-ui";ctx.fillText("Nessun asset",cx,cy);
       return;
     }
-    hint.style.display = "none";
-    const total = items.reduce((a, it) => a + it.value, 0);
-    const cx = size / 2, cy = size / 2, r = size / 2 - 6;
-    // calcola gli angoli e salvali per hover/legenda
-    let ang = -Math.PI / 2;
-    items.forEach(it => {
-      it.a0 = ang;
-      it.slice = it.value / total * Math.PI * 2;
-      it.a1 = ang + it.slice;
-      ang = it.a1;
-    });
-    pieSlices = { items, cx, cy, r, total };
+    hint.style.display="none";
+    const total=all.reduce((a,it)=>a+it.value,0);
+    const major=all.filter(it=>it.value/total>=.035);
+    const minor=all.filter(it=>it.value/total<.035);
+    const items=major.map((it,i)=>({...it,color:PALETTE[i%PALETTE.length]}));
+    if(minor.length)items.push({label:"Altri ("+minor.length+")",value:minor.reduce((a,it)=>a+it.value,0),color:"#bdc8d9",members:minor});
+    let angle=-Math.PI/2;
+    items.forEach(it=>{it.a0=angle;it.slice=it.value/total*Math.PI*2;it.a1=angle+it.slice;angle=it.a1;});
+    pieSlices={items,cx,cy,r,total};
     drawPie();
-    // legenda (già ordinata dal più grande al più piccolo)
-    legend.innerHTML = items.map((it, idx) => {
-      const pct = (it.value / total * 100).toFixed(1).replace(".", ",");
-      return '<div class="pie-leg" data-slice="' + idx + '" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;padding:2px 4px;border-radius:6px;cursor:default;">' +
-        '<span style="width:12px;height:12px;border-radius:3px;background:' + it.color + ';flex:0 0 auto;"></span>' +
-        '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(it.label) + '</span>' +
-        '<b>' + pct + '%</b>' +
-        '<span class="muted" style="min-width:70px;text-align:right;">' + eur(it.value) + '</span>' +
-        '</div>';
-    }).join("");
+    legend.innerHTML=items.map((it,idx)=>{
+      const pct=(it.value/total*100).toFixed(1).replace(".",",");
+      return '<div class="pie-leg" data-slice="'+idx+'"><span class="allocation-dot" style="background:'+it.color+'"></span>'+
+        '<div class="allocation-label"><strong title="'+escapeHtml(it.label)+'">'+escapeHtml(it.label)+'</strong><small>'+eur(it.value)+'</small></div>'+
+        '<b class="allocation-pct">'+pct+'%</b></div>';
+    }).join("")+(minor.length?'<details class="allocation-minor"><summary>Dettaglio degli asset in «Altri»</summary>'+
+      minor.map(it=>'<div class="allocation-minor-row"><span>'+escapeHtml(it.label)+'</span><b>'+(it.value/total*100).toFixed(2).replace(".",",")+'%</b></div>').join("")+'</details>':"");
   }
 
-  // Disegna la torta (o donut) evidenziando l'eventuale fetta sotto il mouse.
   function drawPie() {
-    const canvas = $("pieCanvas");
-    if (!canvas || !pieSlices) return;
-    const { items, cx, cy, r, total } = pieSlices;
-    const size = 280;
-    const ctx = prepCanvas(canvas, size, size);
-    items.forEach((it, i) => {
-      const hovered = i === pieHover;
-      const rr = hovered ? r + 4 : r;
-      // leggero spostamento verso l'esterno della fetta attiva
-      const mid = (it.a0 + it.a1) / 2;
-      const ox = hovered ? Math.cos(mid) * 5 : 0;
-      const oy = hovered ? Math.sin(mid) * 5 : 0;
-      ctx.beginPath();
-      ctx.moveTo(cx + ox, cy + oy);
-      ctx.arc(cx + ox, cy + oy, rr, it.a0, it.a1);
-      ctx.closePath();
-      ctx.fillStyle = it.color;
-      ctx.globalAlpha = (pieHover == null || hovered) ? 1 : 0.45;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 2; ctx.stroke();
+    const canvas=$("pieCanvas");
+    if(!canvas||!pieSlices)return;
+    const {items,cx,cy,r,total}=pieSlices,size=280,ctx=prepCanvas(canvas,280,280);
+    ctx.lineWidth=32;
+    items.forEach((it,i)=>{
+      const hovered=i===pieHover;
+      const radius=r*.78;
+      ctx.beginPath();ctx.arc(cx,cy,radius,it.a0+.007,it.a1-.007);
+      ctx.strokeStyle=it.color;ctx.lineWidth=hovered?39:34;
+      ctx.globalAlpha=(pieHover===null||hovered)?1:.36;
+      if(it.a1-it.a0>.014)ctx.stroke();
+      ctx.globalAlpha=1;
     });
-    // buco centrale (donut)
-    ctx.beginPath(); ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2); ctx.fillStyle = "#1e293b"; ctx.fill();
-    ctx.textAlign = "center";
-    if (pieHover != null && items[pieHover]) {
-      const it = items[pieHover];
-      const pct = (it.value / total * 100).toFixed(1).replace(".", ",");
-      ctx.fillStyle = it.color; ctx.font = "600 12px system-ui";
-      const name = it.label.length > 16 ? it.label.slice(0, 15) + "…" : it.label;
-      ctx.fillText(name, cx, cy - 8);
-      ctx.fillStyle = "#e2e8f0"; ctx.font = "600 15px system-ui";
-      ctx.fillText(eur(it.value), cx, cy + 10);
-      ctx.fillStyle = "#94a3b8"; ctx.font = "11px system-ui";
-      ctx.fillText(pct + "%", cx, cy + 26);
-    } else {
-      ctx.fillStyle = "#94a3b8"; ctx.font = "11px system-ui";
-      ctx.fillText("Totale", cx, cy - 8);
-      ctx.fillStyle = "#e2e8f0"; ctx.font = "600 15px system-ui";
-      ctx.fillText(eur(total), cx, cy + 10);
+    ctx.textAlign="center";
+    if(pieHover!==null&&items[pieHover]){
+      const item=items[pieHover];
+      const pct=(item.value/total*100).toFixed(1).replace(".",",");
+      ctx.fillStyle="#8492a8";ctx.font="600 12px system-ui";ctx.fillText(pct+"% del totale",cx,cy-20);
+      ctx.fillStyle="#18263d";ctx.font="700 17px system-ui";ctx.fillText(eur(item.value),cx,cy+4);
+      ctx.fillStyle="#8492a8";ctx.font="11px system-ui";
+      const label=item.label.length>19?item.label.slice(0,18)+"…":item.label;
+      ctx.fillText(label,cx,cy+24);
+    }else{
+      ctx.fillStyle="#8492a8";ctx.font="600 12px system-ui";ctx.fillText("Valore investito",cx,cy-16);
+      ctx.fillStyle="#18263d";ctx.font="750 20px system-ui";ctx.fillText(eur(total),cx,cy+11);
+      ctx.fillStyle="#8492a8";ctx.font="11px system-ui";ctx.fillText(items.length+" gruppi",cx,cy+31);
     }
   }
 
@@ -3122,7 +3117,7 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
       const { items, cx, cy, r } = pieSlices;
       const dx = mx - cx, dy = my - cy;
       const dist = Math.hypot(dx, dy);
-      if (dist > r + 6 || dist < r * 0.55) return null; // fuori dalla corona
+      if (dist > r * 0.78 + 23 || dist < r * 0.78 - 23) return null; // fuori dalla corona
       let a = Math.atan2(dy, dx);
       // porta l'angolo nello stesso range degli spicchi (che partono da -PI/2)
       while (a < -Math.PI / 2) a += Math.PI * 2;
@@ -3138,13 +3133,13 @@ body{padding:15px 12px 105px;overflow-x:hidden}.card,#suggestion{padding:17px;bo
       drawPie();
       document.querySelectorAll("#pieLegend .pie-leg").forEach(el => {
         const on = parseInt(el.dataset.slice, 10) === idx;
-        el.style.background = on ? "rgba(255,255,255,.08)" : "transparent";
+        el.classList.toggle("active", on);
       });
       canvas.style.cursor = idx != null ? "pointer" : "default";
     }
     canvas.addEventListener("mousemove", (e) => {
       const rect = canvas.getBoundingClientRect();
-      setHover(sliceAt(e.clientX - rect.left, e.clientY - rect.top));
+      setHover(sliceAt((e.clientX - rect.left) * 280 / rect.width, (e.clientY - rect.top) * 280 / rect.height));
     });
     canvas.addEventListener("mouseleave", () => setHover(null));
     // hover anche dalla legenda
