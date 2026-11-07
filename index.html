@@ -3252,7 +3252,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   function setLineMode(mode) {
     const valid = ["profit", "versato", "rendimento", "performance", "composizione", "pl", "proiezione", "benchmark"];
     if (!valid.includes(mode)) mode = "profit";
-    state.lineMode = mode; save();
+    if (state.lineMode !== mode) { state.lineMode = mode; save(); }
     if(chartModeSelect && chartModeSelect.value!==mode) chartModeSelect.value=mode;
     const btnMap = { profit: "btnCProfit", versato: "btnCVersato", rendimento: "btnCRend", performance: "btnCPerf", composizione: "btnCComp", pl: "btnCPl", proiezione: "btnCProj", benchmark: "btnCBench" };
     Object.keys(btnMap).forEach(m => { const b = $(btnMap[m]); if (b) b.className = m === mode ? "" : "ghost"; });
