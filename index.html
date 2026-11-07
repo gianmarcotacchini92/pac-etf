@@ -583,6 +583,11 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .month-history .statement-tip{color:#8c9aaf;font-size:11px;line-height:1.5;margin-top:11px}
 @media(max-width:900px){.month-history>.statement-shell{grid-template-columns:minmax(0,1fr)}.statement-list{max-height:290px}.statement-panel{padding:19px}}
 @media(max-width:520px){.statement-browser-head{padding:12px 14px}.statement-month{padding:12px 14px}.statement-panel h3{font-size:20px}.month-history table tbody tr.statement-selected{gap:14px 11px}.month-history table tbody tr.statement-selected td:nth-child(10){font-size:19px}.month-history .toolbar button{flex:1 1 43%}}
+
+/* Clarify the primary value in the monthly statement list */
+.statement-month>span:last-child small{font-size:10px;font-weight:600;color:#8291a7;white-space:nowrap}
+.statement-month.active>span:last-child small{color:#5871ad}
+@media(max-width:520px){.statement-month>span:last-child small{font-size:9px}}
 </style>
 </head>
 <body>
@@ -1294,7 +1299,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
         if(year!==priorYear){list+='<div class="statement-year">'+escapeHtml(year)+'</div>';priorYear=year;}
         const selected=i===selectedHistoryIndex;
         const perfClass=row.perf>0?"pos":row.perf<0?"neg":"neu";
-        list+='<button type="button" class="statement-month'+(selected?' active':'')+'" data-select-month="'+i+'" aria-pressed="'+selected+'"><span><strong>'+escapeHtml(row.label)+'</strong><small>Versato '+eur(row.deposit)+'</small></span><span><b>'+eur(row.patr)+'</b><i class="'+perfClass+'">'+(row.perf>=0?'+':'')+eur(row.perf)+'</i></span></button>';
+        list+='<button type="button" class="statement-month'+(selected?' active':'')+'" data-select-month="'+i+'" aria-pressed="'+selected+'"><span><strong>'+escapeHtml(row.label)+'</strong><small>Versato '+eur(row.deposit)+'</small></span><span><small>Portafoglio fine mese</small><b>'+eur(row.endVal)+'</b><i class="'+perfClass+'">'+(row.perf>=0?'+':'')+eur(row.perf)+'</i></span></button>';
       }
       statementList.innerHTML=list||'<div class="position-empty">Non ci sono ancora mesi registrati.</div>';
     }
