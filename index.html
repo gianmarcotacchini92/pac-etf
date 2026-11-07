@@ -526,6 +526,102 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .plan-crash #crashLevels{grid-template-columns:1fr}
 }
 @media(max-width:375px){.yield-summary .grid,.yield-metrics .grid{grid-template-columns:1fr}.yield-summary .stat:nth-child(3){grid-column:auto}}
+
+/* MOVIMENTI v6 — compact readable ledger, expand only when needed */
+.month-history .table-wrap{overflow:visible;border:0}
+.month-history .table-wrap>table{display:block;min-width:0;width:100%}
+.month-history table thead{display:none}
+.month-history table tbody{display:flex;flex-direction:column;gap:0}
+.month-history table tbody tr.history-entry{display:grid;grid-template-columns:minmax(155px,1.5fr) minmax(85px,.8fr) minmax(90px,.9fr) minmax(125px,1fr);gap:0 20px;
+ align-items:center;padding:13px 16px;background:#fff;border:0;border-bottom:1px solid #e9eef5;border-radius:0;min-width:0}
+.month-history table tbody tr.history-entry:first-child{border-top:1px solid #e9eef5}
+.month-history table tbody tr.history-entry:hover{background:#f9fbff}
+.month-history table tbody tr.history-entry td{display:block;border:0!important;padding:0!important;min-width:0;white-space:normal;overflow-wrap:anywhere;text-align:left!important;font-size:13px}
+.month-history table tbody tr.history-entry td:before{display:block;font-size:10px;line-height:1.3;color:#91a0b2;letter-spacing:0;font-weight:600;margin:0 0 3px}
+.month-history table tbody tr.history-entry td:nth-child(1){grid-column:1;grid-row:1;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:750;border:0!important}
+.month-history table tbody tr.history-entry td:nth-child(1):before{display:none}
+.month-history .history-toggle{background:none;border:0;color:#243652;padding:8px 5px;display:flex;align-items:center;gap:10px;min-width:0;box-shadow:none;font-weight:750;font-size:14px;text-align:left}
+.month-history .history-toggle:hover{background:#edf3ff;color:#3558d3}
+.month-history .history-chevron{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 22px;background:#eef2fb;border-radius:7px;color:#61738e;font-size:19px;line-height:1;transition:transform .15s}
+.month-history tr.expanded .history-chevron{transform:rotate(180deg)}
+.month-history .history-drag{font-size:12px;opacity:.4;margin-left:auto}
+.month-history table tbody tr.history-entry td:nth-child(3){grid-column:2;grid-row:1}
+.month-history table tbody tr.history-entry td:nth-child(4){grid-column:3;grid-row:1}
+.month-history table tbody tr.history-entry td:nth-child(10){grid-column:4;grid-row:1;color:#253a5e;font-size:15px}
+.month-history table tbody tr.history-entry td:nth-child(3):before{content:"Performance"}
+.month-history table tbody tr.history-entry td:nth-child(4):before{content:"Versato"}
+.month-history table tbody tr.history-entry td:nth-child(10):before{content:"Patrimonio"}
+.month-history table tbody tr.history-entry td:nth-child(2),
+.month-history table tbody tr.history-entry td:nth-child(5),
+.month-history table tbody tr.history-entry td:nth-child(6),
+.month-history table tbody tr.history-entry td:nth-child(7),
+.month-history table tbody tr.history-entry td:nth-child(8),
+.month-history table tbody tr.history-entry td:nth-child(9),
+.month-history table tbody tr.history-entry td:nth-child(11){display:none}
+.month-history table tbody tr.history-entry.expanded{padding-bottom:17px;background:#f8faff;row-gap:15px;border:1px solid #dce7fb;border-radius:13px;margin:5px 0}
+.month-history table tbody tr.history-entry.expanded td:nth-child(2),
+.month-history table tbody tr.history-entry.expanded td:nth-child(5),
+.month-history table tbody tr.history-entry.expanded td:nth-child(6),
+.month-history table tbody tr.history-entry.expanded td:nth-child(7),
+.month-history table tbody tr.history-entry.expanded td:nth-child(8),
+.month-history table tbody tr.history-entry.expanded td:nth-child(9){display:block;grid-row:auto;font-size:12px;align-self:start}
+.month-history table tbody tr.history-entry.expanded td:nth-child(2){grid-column:1}
+.month-history table tbody tr.history-entry.expanded td:nth-child(5){grid-column:2}
+.month-history table tbody tr.history-entry.expanded td:nth-child(6){grid-column:3}
+.month-history table tbody tr.history-entry.expanded td:nth-child(7){grid-column:4}
+.month-history table tbody tr.history-entry.expanded td:nth-child(8){grid-column:1}
+.month-history table tbody tr.history-entry.expanded td:nth-child(9){grid-column:2}
+.month-history table tbody tr.history-entry.expanded td:nth-child(2):before{content:"Valore prima del versamento"}
+.month-history table tbody tr.history-entry.expanded td:nth-child(5):before{content:"Investito"}
+.month-history table tbody tr.history-entry.expanded td:nth-child(6):before{content:"Verso liquidità"}
+.month-history table tbody tr.history-entry.expanded td:nth-child(7):before{content:"Da liquidità"}
+.month-history table tbody tr.history-entry.expanded td:nth-child(8):before{content:"Liquidità residua"}
+.month-history table tbody tr.history-entry.expanded td:nth-child(9):before{content:"Portafoglio a fine mese"}
+.month-history table tbody tr.history-entry.expanded td:nth-child(11){display:block;grid-column:1/-1;border-top:1px solid #e1eafa!important;padding-top:12px!important}
+.month-history table tbody tr.history-entry.expanded td:nth-child(11) .rowbtns{justify-content:flex-start;gap:8px}
+.month-history table tbody tr.totrow{display:none}
+.month-history table tbody tr.editing{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:18px;border:1px solid #a9bdf4;border-radius:13px;background:#f7faff}
+.month-history table tbody tr.editing td{display:flex;flex-direction:column;gap:4px;min-width:0;white-space:normal;text-align:left!important;padding:0!important;border:0!important;grid-column:auto}
+.month-history table tbody tr.editing td:before{display:block;font-size:10px;color:#8292aa;font-weight:650;letter-spacing:0;margin:0}
+.month-history table tbody tr.editing td:nth-child(1){grid-column:1/-1;font-size:14px;border:0!important;padding:0!important}
+.month-history table tbody tr.editing td:nth-child(8){grid-column:1/-1}
+.month-history table tbody tr.editing td:nth-child(9){grid-column:1/-1}
+.month-history table tbody tr.editing td:nth-child(1):before{content:"Mese"}
+.month-history table tbody tr.editing td:nth-child(2):before{content:"Valore pre-versamento"}
+.month-history table tbody tr.editing td:nth-child(3):before{content:"Performance"}
+.month-history table tbody tr.editing td:nth-child(4):before{content:"Versato dal conto"}
+.month-history table tbody tr.editing td:nth-child(5):before{content:"Investito"}
+.month-history table tbody tr.editing td:nth-child(6):before{content:"Verso liquidità"}
+.month-history table tbody tr.editing td:nth-child(7):before{content:"Da liquidità"}
+.month-history table tbody tr.editing td:nth-child(8):before{content:"Tipo registrazione"}
+.month-history table tbody tr.editing td:nth-child(9):before{display:none}
+.month-history table tbody tr.editing td input{width:100%;min-width:0;max-width:none;margin:0;font-size:16px}
+.month-history table tbody tr.editing td:nth-child(9) .rowbtns{justify-content:flex-start}
+.month-history table tbody tr.editing td:nth-child(9) button{padding:9px 18px}
+.month-history .history-count{white-space:nowrap}
+.month-history .toolbar{padding-top:17px}
+@media(max-width:800px){
+.month-history table tbody tr.history-entry{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;padding:12px 5px}
+.month-history table tbody tr.history-entry td:nth-child(1){grid-column:1;grid-row:1}
+.month-history table tbody tr.history-entry td:nth-child(10){grid-column:2;grid-row:1;text-align:right!important}
+.month-history table tbody tr.history-entry td:nth-child(3){grid-column:1;grid-row:2;padding-left:37px!important}
+.month-history table tbody tr.history-entry td:nth-child(4){grid-column:2;grid-row:2;text-align:right!important}
+.month-history .history-toggle{font-size:13px}
+.month-history table tbody tr.history-entry.expanded{padding:13px;gap:13px 10px}
+.month-history table tbody tr.history-entry.expanded td:nth-child(2),
+.month-history table tbody tr.history-entry.expanded td:nth-child(5),
+.month-history table tbody tr.history-entry.expanded td:nth-child(6),
+.month-history table tbody tr.history-entry.expanded td:nth-child(7),
+.month-history table tbody tr.history-entry.expanded td:nth-child(8),
+.month-history table tbody tr.history-entry.expanded td:nth-child(9){grid-row:auto}
+.month-history table tbody tr.history-entry.expanded td:nth-child(2){grid-column:1}
+.month-history table tbody tr.history-entry.expanded td:nth-child(5){grid-column:2}
+.month-history table tbody tr.history-entry.expanded td:nth-child(6){grid-column:1}
+.month-history table tbody tr.history-entry.expanded td:nth-child(7){grid-column:2}
+.month-history table tbody tr.history-entry.expanded td:nth-child(8){grid-column:1}
+.month-history table tbody tr.history-entry.expanded td:nth-child(9){grid-column:2}
+.month-history table tbody tr.history-entry.expanded td:nth-child(11){grid-column:1/-1}
+}
 </style>
 </head>
 <body>
@@ -1186,6 +1282,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   const heroObserver=new MutationObserver(()=>renderDashboardHero());
   for(const id of ["sTot","sPerf","sInv","rXirr"]){const el=document.getElementById(id);if(el)heroObserver.observe(el,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["class"]});}
   document.getElementById("btnGoDetails")?.addEventListener("click",()=>switchTab("riepilogo"));
+    const expandedHistoryRows = new Set();
     function render() {
     const d = derive();
 
@@ -1210,8 +1307,8 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
       body.innerHTML = d.rows.map((r, i) => {
         if (i === editIdx) return editRowHtml(i, r);
         const pc = r.perf > 0 ? "pos" : r.perf < 0 ? "neg" : "neu";
-        return '<tr draggable="true" data-idx="' + i + '">' +
-          '<td><span class="grip" title="Trascina per riordinare">⠿</span>' + escapeHtml(r.label) + "</td>" +
+        return '<tr draggable="true" data-idx="' + i + '" class="history-entry' + (expandedHistoryRows.has(i) ? ' expanded' : '') + '">' +
+          '<td><button class="history-toggle" type="button" data-toggle="' + i + '" aria-expanded="' + (expandedHistoryRows.has(i) ? 'true' : 'false') + '" title="Mostra o nascondi i dettagli"><span class="history-chevron">⌄</span><span>' + escapeHtml(r.label) + '</span></button><span class="history-drag grip" title="Trascina per riordinare">⠿</span></td>' +
           "<td>" + eur(r.observed) + "</td>" +
           '<td class="' + pc + '">' + eur(r.perf) + "</td>" +
           "<td>" + (r.deposit ? eur(r.deposit) : "—") + "</td>" +
@@ -1415,11 +1512,14 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   });
 
   $("histBody").addEventListener("click", (e) => {
+    const toggle=e.target.closest(".history-toggle[data-toggle]");
+    if(toggle){const i=parseInt(toggle.dataset.toggle,10);const row=toggle.closest("tr");const opening=!expandedHistoryRows.has(i);if(opening)expandedHistoryRows.add(i);else expandedHistoryRows.delete(i);row?.classList.toggle("expanded",opening);toggle.setAttribute("aria-expanded",String(opening));return;}
     const del = e.target.closest(".del[data-i]");
     if (del) {
       const i = parseInt(del.dataset.i, 10);
       if (confirm("Eliminare questo mese? Anche i mesi successivi verranno ricalcolati.")) {
         state.months.splice(i, 1);
+        expandedHistoryRows.clear();
         if (editIdx === i) editIdx = null;
         save(); render(); updatePreview();
       }
