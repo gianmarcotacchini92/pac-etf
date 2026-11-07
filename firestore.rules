@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /pacStates/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      // Only protocol v2 clients are allowed to write.
+      // Previous cached releases send no syncProtocol and are rejected.
+      function validWriter() {
+        return request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.syncProtocol == 2
+          && request.resource.data.state is string
+          && request.resource.data.monthKeys is list
+          && request.resource.data.monthCount is int
+          && request.resource.data.monthCount == request.resource.data.monthKeys.size();
+      }
+
+      allow create: if validWriter();
+
+      // Month identifiers must be monotonic. Removing a month requires a
+      // separately designed deletion protocol; stale clients cannot roll back
+      // October to September. The rules protect membership, not individual
+      // field conflicts within an existing month.
+      allow update: if validWriter()
+        && (
+          !('monthKeys' in resource.data)
+          || request.resource.data.monthKeys.hasAll(resource.data.monthKeys)
+        );
+
+      // Do not allow a cached old client to wipe the entire document.
+      allow delete: if false;
+    }
+  }
+}
