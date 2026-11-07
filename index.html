@@ -597,6 +597,55 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .history-sync-panel{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid #e2e9f6;background:#f6f9ff;border-radius:12px;margin:0 0 18px;font-size:12px;color:#70839d}
 .history-sync-panel button{white-space:nowrap;font-size:12px}
 @media(max-width:600px){.cloud-diagnostics{grid-template-columns:1fr}.history-sync-panel{flex-direction:column;align-items:stretch}.history-sync-panel button{width:100%}}
+/* Rendimenti — focused analytics view */
+.returns-layout{display:grid;grid-template-columns:minmax(0,1.38fr) minmax(330px,1fr);gap:19px;margin-bottom:20px;align-items:stretch}
+.returns-primary,.returns-side{border:1px solid #e5ebf4;background:#fff;border-radius:19px;box-shadow:0 6px 26px #263d6110;min-width:0}
+.returns-primary{padding:30px 32px}
+.returns-primary-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.returns-kicker{display:block;font-size:10px;letter-spacing:.14em;color:#8190a7;font-weight:800}
+.returns-primary h3,.returns-side h3{font-size:19px;font-weight:780;letter-spacing:-.035em;margin:8px 0 0;color:#263551}
+.returns-period-pill{background:#edf3ff;border:1px solid #dce6fa;border-radius:99px;font-size:11px;font-weight:700;color:#4766a6;padding:7px 11px;white-space:nowrap}
+.returns-main-figure{font-weight:850;font-size:clamp(43px,5vw,64px);letter-spacing:-.065em;margin:29px 0 7px;line-height:1.15;font-variant-numeric:tabular-nums;color:#213856}
+.returns-main-figure.pos{color:#07956f}.returns-main-figure.neg{color:#d35068}
+.returns-main-subtitle{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#7c8aa0;font-size:12px}
+.returns-percent{background:#eef2f8;color:#61738c;padding:6px 10px;border-radius:7px;font-weight:800;font-variant-numeric:tabular-nums}
+.returns-percent.positive{background:#e8f9f0;color:#058763}
+.returns-percent.negative{background:#fff0f3;color:#c24461}
+.returns-divider{border-top:1px solid #e9edf5;margin:30px 0 22px}
+.returns-balance-head{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#7d8aa1;align-items:center}
+.returns-balance-head strong{color:#273a58;font-size:22px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.returns-stacked-bar{height:13px;background:#e8eef7;border-radius:99px;overflow:hidden;display:flex;margin:15px 0 22px}
+.returns-stacked-bar span:first-child{background:#5474ed;height:100%}
+.returns-stacked-bar span:last-child{background:#9dd4de;height:100%}
+.returns-legend{display:grid;gap:13px}
+.returns-legend>div{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:9px;align-items:center;color:#7f8ca2;font-size:12px}
+.returns-legend b{font-size:13px;color:#293b58;font-variant-numeric:tabular-nums}
+.returns-dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.returns-side{padding:28px 27px;display:flex;flex-direction:column;gap:17px}
+.returns-side-heading p{font-size:12px;line-height:1.5;color:#8090a4;margin:8px 0 0}
+.returns-metric{background:#f7f9fe;border:1px solid #ebeff7;border-radius:13px;padding:17px;min-width:0}
+.returns-metric>span{color:#77879d;font-size:11px;display:block;line-height:1.45}
+.returns-metric>strong{font-size:28px;font-weight:820;letter-spacing:-.04em;display:block;color:#2a4268;margin-top:8px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.returns-metric>strong.pos{color:#08976d}.returns-metric>strong.neg{color:#d35068}
+.returns-metric small{font-size:11px;color:#90a0b3;line-height:1.4;display:block;margin-top:7px}
+.returns-metric-lead{background:#edf3ff;border-color:#e0e8fd}
+.returns-metric-lead strong{font-size:36px}
+.returns-small-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.returns-small-metrics .returns-metric>strong{font-size:22px}
+.returns-history-line{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#78879c;padding:0 3px}
+.returns-history-line strong{color:#334967;text-align:right}
+.returns-methodology{border-top:1px solid #edf0f6;padding-top:14px;margin-top:auto}
+.returns-methodology summary{cursor:pointer;color:#4263d4;font-size:12px;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.returns-methodology summary::-webkit-details-marker{display:none}
+.returns-methodology p{font-size:12px;color:#718198;line-height:1.6;margin:12px 0 0}
+@media(max-width:1100px){.returns-layout{grid-template-columns:1fr}}
+@media(max-width:650px){.returns-layout{gap:13px}.returns-primary,.returns-side{padding:21px 18px;border-radius:16px}
+.returns-primary h3,.returns-side h3{font-size:17px}.returns-main-figure{font-size:44px;margin:21px 0 9px}
+.returns-divider{margin:24px 0 18px}.returns-balance-head strong{font-size:19px}
+.returns-metric-lead strong{font-size:31px}.returns-small-metrics .returns-metric{padding:13px}
+.returns-small-metrics .returns-metric strong{font-size:21px}
+.returns-period-pill{font-size:10px;padding:5px 8px}}
+
 </style>
 </head>
 <body>
