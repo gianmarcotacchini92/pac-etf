@@ -588,6 +588,15 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .statement-month>span:last-child small{font-size:10px;font-weight:600;color:#8291a7;white-space:nowrap}
 .statement-month.active>span:last-child small{color:#5871ad}
 @media(max-width:520px){.statement-month>span:last-child small{font-size:9px}}
+
+/* Cloud verification: explicit, visible sources of truth */
+.cloud-diagnostics{margin:14px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cloud-diagnostics>div{min-width:0;background:#f6f9ff;padding:12px;border:1px solid #e6ecf7;border-radius:10px}
+.cloud-diagnostics>div span{display:block;color:#7f8ca0;font-size:11px;margin-bottom:5px}
+.cloud-diagnostics>div strong{font-size:14px;overflow-wrap:anywhere}
+.history-sync-panel{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid #e2e9f6;background:#f6f9ff;border-radius:12px;margin:0 0 18px;font-size:12px;color:#70839d}
+.history-sync-panel button{white-space:nowrap;font-size:12px}
+@media(max-width:600px){.cloud-diagnostics{grid-template-columns:1fr}.history-sync-panel{flex-direction:column;align-items:stretch}.history-sync-panel button{width:100%}}
 </style>
 </head>
 <body>
@@ -819,6 +828,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   <!-- Storico -->
   <div class="card month-history" style="margin-bottom:16px;" data-tab="mese">
     <h2><span class="ico">▦</span> Cronologia mensile <span class="history-count" id="historyCount"></span></h2>
+    <div class="history-sync-panel"><span>Se manca un mese su un dispositivo, verifica i dati di Firebase.</span><button type="button" class="ghost" id="btnVerifyHistoryFromMovements">Verifica sincronizzazione</button></div>
     <div class="statement-shell">
       <div class="statement-browser">
         <div class="statement-browser-head">SELEZIONA UN MESE</div>
@@ -873,6 +883,14 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
       </div>
     </div>
     <div id="fbStatus" class="note" style="margin-top:12px;">Non connesso.</div>
+    <div class="cloud-diagnostics">
+      <div><span>Storico sul dispositivo</span><strong id="syncLocalMonths">—</strong></div>
+      <div><span>Ultimo mese sul dispositivo</span><strong id="syncLocalLast">—</strong></div>
+      <div><span>Storico verificato su Firebase</span><strong id="syncRemoteMonths">Da verificare</strong></div>
+      <div><span>Ultimo mese su Firebase</span><strong id="syncRemoteLast">Da verificare</strong></div>
+    </div>
+    <button class="ghost" type="button" id="btnVerifyHistoryCloud">Verifica e riconcilia lo storico con Firebase</button>
+    <div class="hint" style="margin-top:8px;">Controllo diretto del server: recupera sul dispositivo i mesi presenti in cloud e aggiunge al cloud solo i mesi locali mancanti. Non sostituisce prezzi e posizioni ETF.</div>
   </div>
 
   <details style="max-width:1400px;margin:0 auto 40px;" data-tab="piano">
@@ -1304,6 +1322,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
       statementList.innerHTML=list||'<div class="position-empty">Non ci sono ancora mesi registrati.</div>';
     }
     if(statementTitle)statementTitle.textContent=selectedHistoryIndex===null?"Nessun mese":d.rows[selectedHistoryIndex].label;
+    updateSyncDiagnostics();
     const body = $("histBody");
     if (!d.rows.length) {
       body.innerHTML = '<tr><td colspan="11" class="empty">Nessun mese registrato. Aggiungi il primo mese qui sopra.</td></tr>';
@@ -2438,6 +2457,86 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     return result;
   }
 
+
+  function updateSyncDiagnostics(remote) {
+    const local=Array.isArray(state.months)?state.months:[];
+    const lcount=$("syncLocalMonths"),llast=$("syncLocalLast"),rcount=$("syncRemoteMonths"),rlast=$("syncRemoteLast");
+    if(lcount)lcount.textContent=local.length+" mesi";
+    if(llast)llast.textContent=local.length?String(local[local.length-1].label||"—"):"Nessun mese";
+    if(remote!==undefined){
+      const months=remote&&Array.isArray(remote.months)?remote.months:[];
+      if(rcount)rcount.textContent=months.length+" mesi";
+      if(rlast)rlast.textContent=months.length?String(months[months.length-1].label||"—"):"Nessun mese";
+    }
+  }
+
+  // Explicit server-first reconciliation, safe even if another device holds
+  // an older local copy: never writes over current server positions or month values.
+  async function verifyHistoryCloud(){
+    if(!cloud.connected||!cloud.user||!cloud.docRef){
+      fbStatus("Accedi a Firebase con lo stesso account Google su entrambi i dispositivi.","warn");
+      switchTab("account");
+      return;
+    }
+    const button=$("btnVerifyHistoryCloud");
+    if(button)button.disabled=true;
+    fbStatus("Lettura diretta di Firebase in corso…","");
+    const currentRef=cloud.docRef, generation=cloud.syncGeneration;
+    const startedAt=lastLocalChange;
+    try{
+      const {getDocFromServer,runTransaction}=fbMods.storeMod;
+      const snap=await getDocFromServer(currentRef);
+      if(generation!==cloud.syncGeneration)return;
+      let remote=null;
+      if(snap.exists()){
+        try{remote=JSON.parse(snap.data().state);}catch(e){throw Error("Il documento Firebase non è JSON valido.");}
+        if(!remote||!Array.isArray(remote.months))throw Error("Lo storico Firebase non è valido.");
+      }
+      updateSyncDiagnostics(remote);
+      const localMonths=Array.isArray(state.months)?state.months:[];
+      const missing=mergeHistoryMonths(remote?.months,localMonths).length-(remote?.months?.length||0);
+      // Don't upload unverified/stale asset records. A transaction is needed only
+      // when truly missing month identifiers are present on this device.
+      if(missing){
+        const txResult=await runTransaction(cloud.db,async tx=>{
+          const freshSnap=await tx.get(currentRef);
+          let fresh=null;
+          if(freshSnap.exists()){
+            try{fresh=JSON.parse(freshSnap.data().state);}catch(e){throw Error("Il documento remoto non è leggibile.");}
+            if(!fresh||!Array.isArray(fresh.months))throw Error("Lo storico remoto non è valido.");
+          }
+          const joined=mergeHistoryMonths(fresh?.months,localMonths);
+          const source=fresh||state;
+          const updated={...source,months:joined};
+          if(!fresh||joined.length>fresh.months.length){
+            tx.set(currentRef,{state:JSON.stringify(updated),updatedAt:Date.now(),client:CLIENT_ID,savedAt:Date.now()});
+          }
+          return updated;
+        });
+        remote=txResult;
+      }
+      if(generation!==cloud.syncGeneration)return;
+      if(lastLocalChange!==startedAt){
+        fbStatus("Hai modificato dei dati durante il controllo. Riprova per non perderli.","warn");
+        return;
+      }
+      cloud.ready=true;
+      cloud.localDirty=false;
+      if(remote)applyMergedState(remote,Date.now(),missing?"Mesi mancanti riconciliati con Firebase ✓":"Verifica cloud completata ✓");
+      else fbStatus("Non risultano mesi né su Firebase né su questo dispositivo.","warn");
+      updateSyncDiagnostics(remote);
+      if(!missing&&remote&&localMonths.length===remote.months.length){
+        fbStatus("Confronto completato: "+remote.months.length+" mesi su Firebase. Ultimo: "+String(remote.months.at(-1)?.label||"—")+".","");
+      }else if(!missing&&remote){
+        fbStatus("Storico scaricato: "+remote.months.length+" mesi dal server Firebase.","");
+      }
+    }catch(err){
+      fbStatus("Verifica Firebase non riuscita: "+(err?.message||err)+". I dati locali non sono stati sostituiti.","bad");
+    }finally{if(button)button.disabled=false;updateSyncDiagnostics();}
+  }
+  $("btnVerifyHistoryCloud")?.addEventListener("click",verifyHistoryCloud);
+  $("btnVerifyHistoryFromMovements")?.addEventListener("click",verifyHistoryCloud);
+
   function scheduleCloudUpload() {
     if(!cloud.connected||!cloud.ready||cloud.applyingRemote)return;
     if(cloud.uploadTimer)clearTimeout(cloud.uploadTimer);
@@ -2521,6 +2620,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
         try{remote=JSON.parse(data.state);}catch(e){fbStatus("Dati cloud illeggibili: nessuna sovrascrittura eseguita.","bad");return;}
         if(!remote||!Array.isArray(remote.months)){fbStatus("Formato cloud non valido: sincronizzazione bloccata.","bad");return;}
       }
+      updateSyncDiagnostics(remote);
       if(!cloud.ready){
         cloud.ready=true;
         // Non usare il timestamp locale per decidere chi sovrascrive il cloud.
