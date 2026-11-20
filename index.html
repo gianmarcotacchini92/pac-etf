@@ -744,6 +744,9 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .settings-inner input{min-width:0;max-width:100%;width:100%;font-size:16px}
 .plan-source{font-size:11px;color:#8192aa;margin:-6px 0 18px;line-height:1.55}
 @media(max-width:700px){.settings-accordion>summary{padding:16px}.settings-inner{padding:16px}.settings-inner>.row3{grid-template-columns:1fr}.settings-inner .row2{grid-template-columns:repeat(2,minmax(0,1fr))}.plan-source{font-size:11px}}
+
+/* Explain the source and limits of market-correction valuations */
+.plan-crash .crash-source{font-size:11px;line-height:1.65;color:#7386a2;margin-top:10px}
 </style>
 </head>
 <body>
@@ -1592,10 +1595,14 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   }
 
   function renderCrash(d) {
-    // peak = max di tutti i valori (iniziale, osservati, fine mese)
-    let peak = state.initValue;
-    d.rows.forEach(r => { peak = Math.max(peak, r.observed, r.endVal); });
-    const current = d.rows.length ? d.rows[d.rows.length - 1].observed : state.initValue;
+    // Use the exact same Scalable snapshot as the goal projection.
+    // Historical values only provide the peak reference; they must not
+    // replace the synchronized current portfolio valuation.
+    const synced = syncedScalablePortfolioValue();
+    const historicCurrent = d.rows.length ? d.rows[d.rows.length - 1].patr : (num(state.initValue) + num(state.initLiq));
+    const current = synced ? synced.total : historicCurrent;
+    let peak = Math.max(0, num(state.initValue), current);
+    d.rows.forEach(r => { peak = Math.max(peak, num(r.observed), num(r.endVal)); });
     const info = $("crashInfo");
     const box = $("crashLevels");
 
@@ -1611,9 +1618,14 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     const reserve = Math.max(0, d.liq); // liquidità di riserva (snapshot attuale)
     const pctSum = state.crash.reduce((a, lv) => a + num(lv.pct), 0);
     info.className = "note" + (dd <= state.crash[0].dd ? " warn" : "");
-    info.innerHTML = "Picco: <b>" + eur(peak) + "</b> · Valore attuale: <b>" + eur(current) +
-      "</b> · Drawdown: <b class='" + ddCls + "'>" + dd.toFixed(1) + "%</b> · Riserva liquidità: <b>" + eur(reserve) + "</b>" +
-      (Math.abs(pctSum - 100) >= 0.01 ? " · <b class='warn'>somma percentuali " + pctSum.toFixed(0) + "% (dovrebbe essere 100%)</b>" : "");
+    const asOf=synced?synced.asOf.toLocaleString("it-IT",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):null;
+    info.innerHTML = "Picco storico del portafoglio: <b>" + eur(peak) + "</b> · Valore attuale: <b>" + eur(current) +
+      "</b> · Ribasso stimato: <b class='" + ddCls + "'>" + dd.toFixed(1) + "%</b> · Riserva storica: <b>" + eur(reserve) + "</b>" +
+      (Math.abs(pctSum - 100) >= 0.01 ? " · <b class='warn'>somma percentuali " + pctSum.toFixed(0) + "% (dovrebbe essere 100%)</b>" : "") +
+      "<div class='crash-source'>" + (synced
+        ? "Valore attuale da Scalable ("+synced.positions+" posizioni, quotazioni al "+asOf+"), identico alla proiezione del Piano. Liquidità esclusa."
+        : "Valore Scalable non disponibile: stesso dato storico utilizzato dalla proiezione del Piano. Sincronizza il portafoglio dalla Dashboard.") +
+      " Il picco deriva dalle registrazioni mensili e può comprendere nuovi versamenti: il ribasso è indicativo, non un drawdown corretto per i flussi.</div>";
 
     // ordina per profondità (dal calo minore al maggiore) per il cumulato
     let deployed = 0;
@@ -2023,7 +2035,9 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     renderPie();
     renderAllocation();
     if (currentChartCfg) setLineMode(state.lineMode || "profit");
-    renderProjection(derive());
+    const currentHistory=derive();
+    renderProjection(currentHistory);
+    renderCrash(currentHistory);
   }
 
   function renderAllocation() {
@@ -2280,7 +2294,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
       }
       if (updated || positionChanges || newPositions || newTransactions) {
         save();
-        renderHoldings(); renderAllocation(); updatePreview(); renderProjection(derive());
+        renderHoldings(); renderAllocation(); updatePreview();
       }
       status.className = "note" + (updated ? "" : " warn");
       status.textContent = updated || positionChanges || newPositions || newTransactions
