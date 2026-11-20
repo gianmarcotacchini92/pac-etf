@@ -2023,6 +2023,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     renderPie();
     renderAllocation();
     if (currentChartCfg) setLineMode(state.lineMode || "profit");
+    renderProjection(derive());
   }
 
   function renderAllocation() {
@@ -2257,7 +2258,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
                 const q = latest.get(p.isin.toUpperCase());
                 state.holdings.push({ isin: p.isin, name: p.name || p.isin, symbol: "", qty: p.qty,
                   buyPrice: 0, price: q ? q.price : 0, currency: "EUR", srcPrice: 0,
-                  srcCurrency: "", target: "" });
+                  srcCurrency: "", scalableQuoteAt: q ? q.timestampUtc : null, target: "" });
                 newPositions++;
               }
             }
