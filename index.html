@@ -725,6 +725,25 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
 .pwa-install-panel p{font-size:12px;color:#7d8ba2;line-height:1.6;margin:6px 0 0}
 .pwa-install-panel button{white-space:nowrap}
 @media(max-width:600px){.app-header-actions .header-status{display:none}.pwa-install-panel{align-items:stretch;flex-direction:column}.pwa-install-panel button{width:100%}}
+
+/* Settings navigation: collapsible strategy editors */
+.settings-list{display:grid;gap:12px;margin:0 0 20px}
+.settings-accordion{background:#fff;border:1px solid #e3eaf4;border-radius:16px;overflow:hidden}
+.settings-accordion>summary{list-style:none;display:flex;align-items:center;gap:13px;padding:19px 21px;cursor:pointer;user-select:none}
+.settings-accordion>summary::-webkit-details-marker{display:none}
+.settings-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:13px;background:#eef3ff;color:#526fe3;font-size:21px}
+.settings-title{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
+.settings-title strong{font-size:15px;color:#2a3d60}
+.settings-title small{font-size:12px;line-height:1.4;color:#8190a6}
+.settings-chevron{font-size:22px;color:#8394b1;transition:transform .2s}
+.settings-accordion[open] .settings-chevron{transform:rotate(180deg)}
+.settings-accordion>.plan-config{box-shadow:none!important;border:0!important;border-top:1px solid #eef2f8!important;margin:0!important;border-radius:0!important}
+.settings-inner{padding:21px;border-top:1px solid #edf1f8}
+.settings-inner>.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.settings-inner .row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.settings-inner input{min-width:0;max-width:100%;width:100%;font-size:16px}
+.plan-source{font-size:11px;color:#8192aa;margin:-6px 0 18px;line-height:1.55}
+@media(max-width:700px){.settings-accordion>summary{padding:16px}.settings-inner{padding:16px}.settings-inner>.row3{grid-template-columns:1fr}.settings-inner .row2{grid-template-columns:repeat(2,minmax(0,1fr))}.plan-source{font-size:11px}}
 </style>
 </head>
 <body>
@@ -739,7 +758,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     <button type="button" class="tabbtn" data-go="riepilogo"><span class="tico">▥</span>Rendimenti</button>
     <button type="button" class="tabbtn" data-go="mese"><span class="tico">▤</span>Movimenti</button>
     <button type="button" class="tabbtn" data-go="piano"><span class="tico">◎</span>Piano</button>
-    <button type="button" class="tabbtn" data-go="account"><span class="tico">⚙</span>Account</button>
+    <button type="button" class="tabbtn" data-go="account"><span class="tico">⚙</span>Impostazioni</button>
   </nav>
 
   <section class="section-intro" data-tab="piano"><div class="eyebrow">STRATEGIA PAC</div><h2>Il tuo piano, con metodo.</h2><p>Obiettivi, regole di investimento e gestione della liquidità.</p></section>
@@ -886,8 +905,8 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     <div class="plan-headline"><div><div class="returns-kicker">IL TUO TRAGUARDO</div><h2>Verso il tuo obiettivo</h2><p>Una proiezione indicativa costruita sul patrimonio storico e sui parametri che scegli.</p></div><span class="plan-milestone-icon">◎</span></div>
     <div class="plan-hero-grid">
       <div class="plan-hero-main">
-        <span class="plan-hero-label">Patrimonio registrato</span>
-        <strong id="planCurrent">—</strong>
+        <span class="plan-hero-label" id="planValueLabel">Portafoglio da Scalable</span>
+        <strong id="planCurrent">—</strong><p class="plan-source" id="planValueSource">In attesa delle quotazioni sincronizzate.</p>
         <div class="plan-progress-track" role="progressbar" aria-label="Avanzamento verso l'obiettivo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="planProgress"><div id="planProgressFill"></div></div>
         <div class="plan-progress-labels"><span id="planProgressPct">Obiettivo da impostare</span><span id="planTargetLabel">—</span></div>
       </div>
@@ -908,63 +927,10 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     </div>
   </div>
 
-  <!-- Stato iniziale + config -->
-  <div class="card plan-config" data-tab="piano">
-      <h2><span class="ico">⚙</span> Le regole del tuo PAC</h2><p class="plan-config-description">Imposta il budget ricorrente e le regole automatiche che guidano i movimenti mensili.</p>
-      <div class="row2">
-        <div>
-          <label>Valore portafoglio iniziale (€)</label>
-          <input type="number" id="initValue" step="0.01" value="0" />
-        </div>
-        <div>
-          <label>Liquidità iniziale (€)</label>
-          <input type="number" id="initLiq" step="0.01" value="0" />
-        </div>
-      </div>
-      <div class="row3">
-        <div>
-          <label>Budget mensile (€)</label>
-          <input type="number" id="cfgBudget" step="1" value="150" />
-        </div>
-        <div>
-          <label>Crescita target (€)</label>
-          <input type="number" id="cfgTarget" step="1" value="150" />
-        </div>
-        <div>
-          <label>Quota minima (€)</label>
-          <input type="number" id="cfgMin" step="1" value="100" />
-        </div>
-      </div>
-      <div class="hint">La quota minima è quanto investi sempre quando la performance è già forte (il resto del budget va in liquidità).</div>
-    </div>
-
   <!-- Punti d'ingresso crolli -->
   <div class="card plan-crash" style="margin-bottom:16px;" data-tab="piano">
     <h2><span class="ico">↘</span> Piano per le correzioni di mercato</h2>
-    <p class="plan-crash-description">Definisci come distribuire la liquidità in tre livelli di ribasso. Le percentuali devono sommare a <b>100%</b> e vengono calcolate sulla riserva iniziale, non sul saldo dopo ciascun livello.</p>
-    <div class="row3" style="margin-bottom:14px;">
-      <div>
-        <label>Soglia 1 (%) → % riserva</label>
-        <div class="row2">
-          <input type="number" id="dd1" step="1" value="-10" />
-          <input type="number" id="dp1" step="1" value="20" />
-        </div>
-      </div>
-      <div>
-        <label>Soglia 2 (%) → % riserva</label>
-        <div class="row2">
-          <input type="number" id="dd2" step="1" value="-20" />
-          <input type="number" id="dp2" step="1" value="30" />
-        </div>
-      </div>
-      <div>
-        <label>Soglia 3 (%) → % riserva</label>
-        <div class="row2">
-          <input type="number" id="dd3" step="1" value="-30" />
-          <input type="number" id="dp3" step="1" value="50" />
-        </div>
-      </div>
-    </div>
+    <p class="plan-crash-description">Le tre soglie e le quote della riserva stabilite nella strategia. Per modificarle vai in <b>Impostazioni → Correzioni di mercato</b>.</p>
     <div id="crashInfo" class="note">In attesa di dati…</div>
     <div id="crashLevels" style="margin-top:12px;"></div>
   </div>
@@ -997,6 +963,70 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     </div>
   </div>
 
+  <section class="section-intro" data-tab="account"><div class="eyebrow">PERSONALIZZAZIONE</div><h2>Impostazioni.</h2><p>Gestisci le regole del PAC, le soglie di mercato e la sincronizzazione dei dati.</p></section>
+  <section class="settings-list" data-tab="account">
+    <details class="settings-accordion" id="settingsPac">
+      <summary><span class="settings-icon">◎</span><span class="settings-title"><strong>Regole del PAC</strong><small>Budget, crescita target, investimento minimo e capitale iniziale</small></span><span class="settings-chevron">⌄</span></summary>
+      
+  <div class="card plan-config">
+      <h2><span class="ico">⚙</span> Le regole del tuo PAC</h2><p class="plan-config-description">Imposta il budget ricorrente e le regole automatiche che guidano i movimenti mensili.</p>
+      <div class="row2">
+        <div>
+          <label>Valore portafoglio iniziale (€)</label>
+          <input type="number" id="initValue" step="0.01" value="0" />
+        </div>
+        <div>
+          <label>Liquidità iniziale (€)</label>
+          <input type="number" id="initLiq" step="0.01" value="0" />
+        </div>
+      </div>
+      <div class="row3">
+        <div>
+          <label>Budget mensile (€)</label>
+          <input type="number" id="cfgBudget" step="1" value="150" />
+        </div>
+        <div>
+          <label>Crescita target (€)</label>
+          <input type="number" id="cfgTarget" step="1" value="150" />
+        </div>
+        <div>
+          <label>Quota minima (€)</label>
+          <input type="number" id="cfgMin" step="1" value="100" />
+        </div>
+      </div>
+      <div class="hint">La quota minima è quanto investi sempre quando la performance è già forte (il resto del budget va in liquidità).</div>
+    </div>
+    </details>
+    <details class="settings-accordion" id="settingsCrash">
+      <summary><span class="settings-icon">↘</span><span class="settings-title"><strong>Correzioni di mercato</strong><small>Soglie di ribasso e percentuali della riserva</small></span><span class="settings-chevron">⌄</span></summary>
+      <div class="settings-inner">
+        <p class="plan-crash-description">Configura le tre soglie e la ripartizione della liquidità. Le percentuali devono sommare a 100% e gli importi vengono calcolati sulla riserva iniziale.</p>
+        <div class="row3" style="margin-bottom:14px;">
+      <div>
+        <label>Soglia 1 (%) → % riserva</label>
+        <div class="row2">
+          <input type="number" id="dd1" step="1" value="-10" />
+          <input type="number" id="dp1" step="1" value="20" />
+        </div>
+      </div>
+      <div>
+        <label>Soglia 2 (%) → % riserva</label>
+        <div class="row2">
+          <input type="number" id="dd2" step="1" value="-20" />
+          <input type="number" id="dp2" step="1" value="30" />
+        </div>
+      </div>
+      <div>
+        <label>Soglia 3 (%) → % riserva</label>
+        <div class="row2">
+          <input type="number" id="dd3" step="1" value="-30" />
+          <input type="number" id="dp3" step="1" value="50" />
+        </div>
+      </div>
+    </div>
+      </div>
+    </details>
+  </section>
   <div class="card" style="margin-bottom:16px;" data-tab="account">
     <h2><span class="ico">☁️</span> Sincronizzazione cloud (Firebase + Google)</h2>
     <div class="hint" style="margin-top:0;line-height:1.6;">
@@ -1308,12 +1338,32 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     return tot / d.rows.length;
   }
 
+  function syncedScalablePortfolioValue(){
+    const positions=(state.holdings||[]).filter(h=>!h.manual);
+    if(!positions.length)return null;
+    // Require a broker quote for every held security: an incomplete mix could
+    // understate the amount and falsely report a portfolio total.
+    const valid=positions.filter(h=>num(h.qty)>=0 && num(h.price)>0 && h.scalableQuoteAt &&
+      Number.isFinite(Date.parse(h.scalableQuoteAt)) && (h.isin||"").trim());
+    if(valid.length!==positions.length)return null;
+    const total=valid.reduce((sum,h)=>sum+num(h.qty)*num(h.price),0);
+    const dates=valid.map(h=>Date.parse(h.scalableQuoteAt));
+    return Number.isFinite(total)?{total,asOf:new Date(Math.min(...dates)),positions:valid.length}:null;
+  }
+
   function renderProjection(d) {
     const info = $("projInfo");
     if (!info) return;
     const goal = num(state.goal);
     const rate = state.projRate === "" || state.projRate == null ? 5 : num(state.projRate);
-    const startPatr = d.rows.length ? d.rows[d.rows.length - 1].patr : (num(state.initValue) + num(state.initLiq));
+    const synced=syncedScalablePortfolioValue();
+    const startPatr=synced?synced.total:(d.rows.length?d.rows[d.rows.length-1].patr:(num(state.initValue)+num(state.initLiq)));
+    const sourceDate=synced?synced.asOf.toLocaleString("it-IT",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):null;
+    const sourceLabel=$("planValueLabel"),sourceDetail=$("planValueSource");
+    if(sourceLabel)sourceLabel.textContent=synced?"Portafoglio ETF · Scalable":"Patrimonio storico · non aggiornato";
+    if(sourceDetail)sourceDetail.textContent=synced
+      ?synced.positions+" posizioni · quotazioni al "+sourceDate+" · liquidità esclusa"
+      :"Nessuno snapshot Scalable completo. Visualizzato il dato dell'ultimo mese registrato: sincronizza il portafoglio dalla Dashboard.";
     const monthly = state.projMonthly === "" || state.projMonthly == null ? avgMonthlyDeposit(d) : num(state.projMonthly);
     const setPlanText=(id,text)=>{const el=$(id);if(el)el.textContent=text;};
     const pct=goal>0?Math.min(100,Math.max(0,startPatr/goal*100)):0;
@@ -1327,7 +1377,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     if(progressFill)progressFill.style.width=pct+"%";
 
     if (!goal || goal <= 0) { info.className = "plan-scenario-note"; info.innerHTML = "Inserisci un obiettivo per attivare la proiezione."; return; }
-    if (goal <= startPatr) { setPlanText("planEstimatedDate","Raggiunto"); info.className = "plan-scenario-note"; info.innerHTML = "Obiettivo già raggiunto secondo lo storico registrato."; return; }
+    if (goal <= startPatr) { setPlanText("planEstimatedDate","Raggiunto"); info.className = "plan-scenario-note"; info.innerHTML = synced?"Obiettivo raggiunto secondo il valore sincronizzato del portafoglio.":"Obiettivo raggiunto secondo l’ultimo valore storico disponibile."; return; }
     const m = monthsToGoal(startPatr, monthly, rate, goal);
     const monTxt = "versando <b>" + eur(monthly) + "/mese</b> con un rendimento ipotizzato del <b>" + rate.toFixed(1).replace(".", ",") + "%/anno</b>";
     if (m == null) { info.className = "plan-scenario-note warn"; info.textContent = "Con questi parametri il traguardo non viene raggiunto entro il limite di simulazione (100 anni)."; return; }
@@ -2229,7 +2279,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
       }
       if (updated || positionChanges || newPositions || newTransactions) {
         save();
-        renderHoldings(); renderAllocation(); updatePreview();
+        renderHoldings(); renderAllocation(); updatePreview(); renderProjection(derive());
       }
       status.className = "note" + (updated ? "" : " warn");
       status.textContent = updated || positionChanges || newPositions || newTransactions
