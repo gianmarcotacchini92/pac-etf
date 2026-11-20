@@ -785,7 +785,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     <p class="home-chart-subtitle">Valore degli ETF a fine mese, esclusa la liquidità.</p>
     <div class="home-chart-value" id="homeChartValue">—</div>
     <canvas id="homePortfolioCanvas" height="250" aria-label="Andamento del valore del portafoglio nel tempo" role="img"></canvas>
-    <p class="home-chart-detail" id="homeChartDetail" aria-live="polite">Tocca il grafico per visualizzare il valore di un mese.</p>
+    <p class="home-chart-detail" id="homeChartDetail" aria-live="polite">Tocca e trascina il dito per esplorare i mesi.</p>
   </div>
 
   <div class="card portfolio-allocation" style="margin-bottom:16px;" data-dashboard-panel="home">
@@ -3162,7 +3162,8 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
     const points=d.rows.filter(r=>Number.isFinite(r.endVal)).map(r=>({label:r.label,value:r.endVal}));
     const current=points.length?points[points.length-1]:null;
     const amount=$("homeChartValue"),period=$("homeChartPeriod"),detail=$("homeChartDetail");
-    if(amount)amount.textContent=current?eur(current.value):"—";
+    const selected=homeHoverIndex!==null&&homeHoverIndex>=0&&homeHoverIndex<points.length?points[homeHoverIndex]:current;
+    if(amount)amount.textContent=selected?eur(selected.value):"—";
     if(period)period.textContent=points.length+" mesi registrati";
     const w=canvas.clientWidth,h=canvas.clientHeight||250;
     const ctx=prepCanvas(canvas,w,h);
@@ -3207,6 +3208,7 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
   }
   (function(){
     const canvas=$("homePortfolioCanvas");if(!canvas)return;
+    let activeTouchPointer=null;
     const move=e=>{
       if(!homeChartHit)return;
       const rect=canvas.getBoundingClientRect(),px=e.clientX-rect.left;
@@ -3214,9 +3216,30 @@ details[data-tab="piano"] summary{color:#4263eb;font-weight:700}
       homeChartHit.points.forEach((p,i)=>{const v=Math.abs(homeChartHit.x(i)-px);if(v<dist){dist=v;best=i;}});
       if(best!==homeHoverIndex){homeHoverIndex=best;drawHomePortfolioChart();}
     };
-    canvas.addEventListener("pointerdown",move);
-    canvas.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")move(e);});
-    canvas.addEventListener("pointerleave",()=>{homeHoverIndex=null;drawHomePortfolioChart();});
+    canvas.addEventListener("pointerdown",e=>{
+      if(e.pointerType!=="mouse"){
+        if(activeTouchPointer!==null)return;
+        activeTouchPointer=e.pointerId;
+        try{canvas.setPointerCapture(e.pointerId);}catch(_){}
+      }
+      move(e);
+    });
+    canvas.addEventListener("pointermove",e=>{
+      // Mouse: normal hover. Touch/pen: scrub continuously while pressed.
+      if(e.pointerType==="mouse"||e.pointerId===activeTouchPointer)move(e);
+    });
+    const end=e=>{
+      if(e.pointerId!==activeTouchPointer)return;
+      activeTouchPointer=null;
+      if(canvas.hasPointerCapture?.(e.pointerId))canvas.releasePointerCapture(e.pointerId);
+      // Keep the last selected month visible after lifting the finger.
+    };
+    canvas.addEventListener("pointerup",end);
+    canvas.addEventListener("pointercancel",end);
+    canvas.addEventListener("pointerleave",e=>{
+      if(e.pointerType!=="mouse"||activeTouchPointer!==null)return;
+      homeHoverIndex=null;drawHomePortfolioChart();
+    });
   })();
   function chartCtx() {
     const canvas = $("lineCanvas");
